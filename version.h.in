@@ -1,0 +1,11 @@
+//clang-format off
+#pragma once
+#ifndef ${PROJECT_NAME}_VER__
+#define ${PROJECT_NAME}_VER__
+constexpr int  ${PROJECT_NAME}_VERSION_MAJOR = @PROJECT_VERSION_MAJOR@;
+constexpr int  ${PROJECT_NAME}_VERSION_MINOR = @PROJECT_VERSION_MINOR@;
+constexpr int  ${PROJECT_NAME}_VERSION_PATCH = @PROJECT_VERSION_PATCH@;
+constexpr int  ${PROJECT_NAME}_VERSION_TWEAK = @PROJECT_VERSION_TWEAK@;
+constexpr char MODULE_NAME[] = "@PROJECT_NAME@";
+#endif // ${PROJECT_NAME}_VER__
+//clang-format on
