@@ -18,4 +18,3 @@
 /// DEFINES
 
 /// CODE
-RateDamper::RateDamper() { };

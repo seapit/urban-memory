@@ -7,6 +7,7 @@
 /// INCLUDES
 // #include <csignal>
 // #include <cstdio>
+#include <algorithm>
 #include <cstdint>
 #include <numbers>
 
@@ -105,45 +106,43 @@ public:
   // the interview question
   // Asume we provide a counter-torque to the current angular rate and the value
   // we want to achieve is 0 (for angular rate)
-  double control(double rhsAngularRate_rad_sec) {
+  double control(double rhsAngularRate_rad_sec) noexcept {
     // Can a reaction wheel exceed it's maximum angular rate?
     // Does it catastrophically fail?
-
     double aBoundedInputRate =
         boundedAngularRateValidation(rhsAngularRate_rad_sec);
 
-    aRetval = damperConfig.dampingGain_N_m_s_per_rad * aBoundedInputRate;
+    aRetVal = damperConfig.dampingGain_N_m_s_per_rad * aBoundedInputRate;
 
-    return boundedTorqueValidation(aRetVal);
+    return boundedTorqueValidation(aReturn);
   };
 
-  double boundedTorqueValidation(double rhsInput) {
-    return minMaxCheck(rhsInput, (0 - damperConfig.outputTorque_Floor_N_m),
-                       damperConfig.outputTorque_Floor_N_m);
+  double boundedTorqueValidation(double rhsInput) noexcept {
+    // std::clamp returns a ref
+
+    aRetVal = std::clamp(rhsInput, (0 - damperConfig.outputTorque_Floor_N_m),
+                         damperConfig.outputTorque_Floor_N_m);
+    return aReturn;
   };
 
   // To use this for flags later in H&M question
-  double boundedVoltageValidation(double rhsInput) {
-    return minMaxCheck(rhsInput,
-                       (damperConfig.nominalVoltage_V -
-                        damperConfig.nominalVoltageVariation_V),
-                       (damperConfig.nominalVoltage_V +
-                        damperConfig.nominalVoltageVariation_V));
+  double boundedVoltageValidation(double rhsInput) noexcept {
+    aRetVal = std::clamp(rhsInput,
+                         (damperConfig.nominalVoltage_V -
+                          damperConfig.nominalVoltageVariation_V),
+                         (damperConfig.nominalVoltage_V +
+                          damperConfig.nominalVoltageVariation_V));
+    return aReturn;
   };
 
-  double boundedAngularRateValidation(double rhsInput) {
-    return minMaxCheck(rhsInput, (0 - damperConfig.maximumAngularRate_rad_sec),
-                       damperConfig.maximumAngularRate_rad_sec);
+  double boundedAngularRateValidation(double rhsInput) noexcept {
+    aRetVal =
+        std::clamp(rhsInput, (0 - damperConfig.maximumAngularRate_rad_sec),
+                   damperConfig.maximumAngularRate_rad_sec);
+    return aReturn;
   }
   // protected:
 
 private:
   RateDamperConfiguration damperConfig;
-  // Helper Function
-  inline constexpr double minMaxCheck(double rhsValue, double rhsMinimum,
-                                      double rhsMaximum) {
-    return (rhsValue < rhsMinimum)   ? rhsMinimum
-           : (rhsValue > rhsMaximum) ? rhsMaximum
-                                     : rhsValue;
-  }
 };
