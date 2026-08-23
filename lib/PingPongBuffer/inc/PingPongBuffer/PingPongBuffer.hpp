@@ -1,11 +1,9 @@
 /**
- * \file HMS.hpp
+ * \file PingPongBuffer.hpp
  * \brief A brief description of what this file is.
  */
 
 #pragma once
-#ifndef TM_PING_PONG__
-#define TM_PING_PONG__
 /// INCLUDES
 // #include <csignal>
 // #include <cstdio>
@@ -13,7 +11,7 @@
 #include <atomic>
 
 /// CMAKE INCLUDES
-// #include "HMS/version.h"
+// #include "PingPongBuffer/version.h"
 
 /// USER INCLUDES
 
@@ -23,9 +21,9 @@
 
 /// CODE
 /**
- * \class HMS
+ * \class PingPongBuffer
  */
-template <class T> class pingPongBase {
+template <class T> class PingPongBuffer {
   static inline constexpr std::size_t numberOfBuffers{2};
 
 public:
@@ -55,5 +53,3 @@ private:
   std::array<T, numberOfBuffers> samples;
   std::atomic<std::size_t> ping_pong{0};
 };
-
-#endif // HMS__
