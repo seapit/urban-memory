@@ -11,11 +11,11 @@
 // #include "version.h"
 
 /// USER INCLUDES
-#include "HMS/HMS.hpp"
+#include "HMS/SensorDefinitions.hpp"
 
 /// NAMESPACE
 
 /// DEFINES
 
 /// CODE
-HMS::HMS() { };
+// HMS::HMS() {};
