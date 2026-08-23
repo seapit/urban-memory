@@ -23,10 +23,20 @@
 
 /// CODE
 struct tmSample {
-  std::size_t samplesStored{0};
   double readValue{0.0};
   std::size_t timestamp{0};
 };
+
+struct sensorState {
+  bool outOfRange{false};
+  bool staleValues{false};
+  double lastValue{0.0};
+  double lastRateOfChange{0.0};
+
+  std::size_t lastTMGenerationtime_ticks{};
+  std::size_t numberOfSamples{0};
+}
+
 struct sensorConfiguration {
   std::string name{};
   std::string units{};
