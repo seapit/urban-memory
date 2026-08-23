@@ -14,6 +14,7 @@
 // #include "RateDamper/version.h"
 
 /// USER INCLUDES
+#include "Common/HelperMacros.hpp"
 
 /// NAMESPACE
 
@@ -46,26 +47,46 @@ static inline constexpr double pi{std::numbers::pi};
 // mass  ≤10 kg
 struct RateDamperConfiguration {
   // Limits
-  static inline constexpr double outputTorqueM_ax_N_m_Hz{11};
+  static inline constexpr double maximumAngularMomentum_N_m_s{11};
+  // defer to floor - data sheet is odd and indicates >= 1 N*m,
+  // must be missing something since this shouldn't be a max
+  static inline constexpr double outputTorque_Floor_N_m{1.0};
   static inline constexpr double maximumAngularRate_rev_min{1200};
-  static inline constexpr double angularRate_Absolute_Max_rad_sec{
+  static inline constexpr double maximumAngularRate_rad_sec{
       // Rev/min * min/sec *rad/rev = Rev/sec * rad/rev = rad/sec
       (maximumAngularRate_rev_min * seconds_to_minute) * (2 * pi)};
 
   static inline constexpr double nominalVoltage_V{28.0};
-  static inline constexpr double nomalVoltageVariation_V{3.0};
-  static inline constexpr double maximumPowerConsumption_W{15.0};
+  static inline constexpr double nominalVoltageVariation_V{3.0};
+  static inline constexpr double steadyStatePowerConsumption_W{15.0};
+  static inline constexpr double maximumPowerConsumption_W{160.0};
 
-  // Physical properties
+  // Control
+  // damping factor has torque = k*w
+  // (math is probably off here)
+  // any value >0 would converge? I think?
+  // lets go with a damping factor between [0.0, 1.0]
+
+  // torque = Nm, w = rad/sec
+  // must have units of N * m * sec/rad
+  //                              N m / (rad/sec) = N m s / rad
+  static inline constexpr double dampingGain_N_m_s_per_rad{0.5};
+
+  // Physical properties, not needed but lets do a complete job
   static inline constexpr double mass_kg{10};
   static inline constexpr double diameter_mm{337};
-
-  //                                        mm*m/mm
-  static inline constexpr double diameter_m{diameter_mm * mm_to_m};
-
   static inline constexpr double height_mm{121};
-  //                                        mm*m/mm
-  static inline constexpr double height_m { height_mm *mm_to_m }
+
+  static inline constexpr double dampingCoefficient_N_m_sec{0};
+
+  // Lets add a sanity check
+  // hopefully brownie points
+  //  W = 1 N*m/s ,
+  // P_max = torque * AngularVel_max
+  static_assert(maximumPowerConsumption_W >=
+                    (outputTorque_Floor_N_m * maximumAngularRate_rad_sec),
+                "configuration likely incorrect, not physically possible "
+                "as a device");
 };
 
 /**
@@ -80,21 +101,41 @@ public:
   RateDamper(const RateDamperConfiguration &rhsConfiguration)
       : damperConfig(rhsConfiguration) {};
 
-  // protected:
+  // This feels wrong, but anything more complicated wouldn't be realistic for
+  // the interview question
+  // Asume we provide a counter-torque to the current angular rate and the value
+  // we want to achieve is 0 (for angular rate)
+  double control(double rhsAngularRate_rad_sec) {
+    // Can a reaction wheel exceed it's maximum angular rate?
+    // Does it catastrophically fail?
 
-  double control(double rhsAngularRate) {};
+    double aBoundedInputRate =
+        boundedAngularRateValidation(rhsAngularRate_rad_sec);
 
+    aRetval = damperConfig.dampingGain_N_m_s_per_rad * aBoundedInputRate;
+
+    return boundedTorqueValidation(aRetVal);
+  };
+
+  double boundedTorqueValidation(double rhsInput) {
+    return minMaxCheck(rhsInput, (0 - damperConfig.outputTorque_Floor_N_m),
+                       damperConfig.outputTorque_Floor_N_m);
+  };
+
+  // To use this for flags later in H&M question
   double boundedVoltageValidation(double rhsInput) {
-    return minMaxCheck(
-        rhsInput,
-        (damperConfig.nominalVoltage_V - damperConfig.nomalVoltageVariation_V),
-        (damperConfig.nominalVoltage_V + damperConfig.nomalVoltageVariation_V));
+    return minMaxCheck(rhsInput,
+                       (damperConfig.nominalVoltage_V -
+                        damperConfig.nominalVoltageVariation_V),
+                       (damperConfig.nominalVoltage_V +
+                        damperConfig.nominalVoltageVariation_V));
   };
 
   double boundedAngularRateValidation(double rhsInput) {
-    return minMaxCheck(rhsInput, (0 - damperConfig.maximumAngularRate_rev_min),
-                       damperConfig.maximumAngularRate_rev_min);
+    return minMaxCheck(rhsInput, (0 - damperConfig.maximumAngularRate_rad_sec),
+                       damperConfig.maximumAngularRate_rad_sec);
   }
+  // protected:
 
 private:
   RateDamperConfiguration damperConfig;

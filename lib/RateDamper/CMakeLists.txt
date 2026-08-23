@@ -89,6 +89,8 @@ else()
     PRIVATE src/RateDamper.cpp
   )
 
+  target_link_libraries(${LIB_NAME} INTERFACE Common)
+
   target_include_directories(${LIB_NAME} PUBLIC ${PROJECT_BINARY_DIR}/inc/
                                                 ${CMAKE_CURRENT_SOURCE_DIR}/inc)
 
