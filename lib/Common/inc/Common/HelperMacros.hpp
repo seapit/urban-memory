@@ -41,9 +41,9 @@
 #define FOR_EACH_AGAIN() FOR_EACH_HELPER
 
 #define ENUM_AND_STRING(enumClassName, ...)                                    \
-  enum class enumClassName { FOR_EACH(ENUM_ITEM, __VA_ARGS__), INVALID };      \
+  enum class enumClassName { FOR_EACH(ENUM_ITEM, __VA_ARGS__), MAX };          \
   constexpr std::string_view enumClassName##Strings[] = {                      \
-      FOR_EACH(STRING_ITEM, __VA_ARGS__), "INVALID"};                          \
+      FOR_EACH(STRING_ITEM, __VA_ARGS__), "MAX"};                              \
   constexpr std::string_view get##enumClassName##str(enumClassName rhs) {      \
     return enumClassName##Strings[static_cast<std::size_t>(rhs)];              \
   }
@@ -59,14 +59,13 @@
 #define ENUM_BASE_AND_STRING(enumClassName, deriveFromType, ...)               \
   enum class enumClassName : deriveFromType {                                  \
     FOR_EACH(ENUM_ITEM, __VA_ARGS__),                                          \
-    INVALID                                                                    \
+    MAX                                                                        \
   };                                                                           \
   constexpr std::string_view enumClassName##Strings[] = {                      \
-      FOR_EACH(STRING_ITEM, __VA_ARGS__), "INVALID"};                          \
+      FOR_EACH(STRING_ITEM, __VA_ARGS__), "MAX"};                              \
   constexpr std::string_view get##enumClassName##Str(enumClassName rhs);
 
-#define ENUM(enumClassName, ...)                                               \
-  enum class enumClassName { __VA_ARGS__, INVALID };
+#define ENUM(enumClassName, ...) enum class enumClassName { __VA_ARGS__, MAX };
 
 #define GET_ENUM_IMPL(enumClassName)                                           \
   constexpr std::string_view get##enumClassName##str(enumClassName rhs) {      \
