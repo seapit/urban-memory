@@ -32,23 +32,20 @@ public:
   // if using multiple buffers, would just ensure power of 2 and use masking and
   // a size_t to not need to keep track of bounds, and overflows are still valid
   // with this
-  void update(const T &rhsSensorInput) noexcept {
-    const auto currentIndex = getCurrentIndex();
-    samples[currentIndex] = rhsSensorInput;
+  void update(T &rhsSensorInput) noexcept {
+    const auto currentIndex = getNextIndex();
+    samples[currentIndex] = std::move(rhsSensorInput);
     ping_pong.store(currentIndex);
   }
 
-  T getLatest() noexcept {
-    const auto currentIndex = getCurrentIndex();
-    return samples[currentIndex];
-  }
+  const T &getLatest() noexcept { return samples[ping_pong.load()]; }
 
 private:
   // just use an XOR to swap between the buffers
   // not optimizing here for memory order/thread sync
   // could use fetch add and remove need for storing it later... but obliges us
   // to use masking
-  inline std::size_t getCurrentIndex() { return (1 ^ ping_pong.load()); }
+  inline std::size_t getNextIndex() { return (1 ^ ping_pong.load()); }
 
   std::array<T, numberOfBuffers> samples;
   std::atomic<std::size_t> ping_pong{0};
