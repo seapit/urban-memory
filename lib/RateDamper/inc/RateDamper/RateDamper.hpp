@@ -80,8 +80,6 @@ struct RateDamperConfiguration {
   static inline constexpr double diameter_mm{337};
   static inline constexpr double height_mm{121};
 
-  static inline constexpr double dampingCoefficient_N_m_sec{0};
-
   // Lets add a sanity check
   // hopefully brownie points
   //  W = 1 N*m/s ,
