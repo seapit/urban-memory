@@ -47,7 +47,7 @@ configure_file("${CMAKE_SOURCE_DIR}/version.h.in"
 # Specify the sources
 target_sources(
   ${LIB_NAME}
-  PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/inc/${LIB_NAME}/version.h" ${inc}/HelperMacros.hpp)
+  PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/inc/${LIB_NAME}/version.h" ${inc}/HelperMacros.hpp ${inc}/Constants.hpp)
 
 # Specify the include directories
 target_include_directories(

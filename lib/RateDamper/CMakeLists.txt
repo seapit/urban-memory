@@ -85,7 +85,10 @@ else()
 
   target_sources(
     ${LIB_NAME}
-    PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/inc/${LIB_NAME}/version.h" ${inc}/RateDamper.hpp
+    PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/inc/${LIB_NAME}/version.h"
+    PUBLIC ${inc}/RateDamper.hpp
+    PUBLIC ${inc}/Wheels/Configuration.hpp
+    PUBLIC ${inc}/Wheels/RW1000.hpp
     PRIVATE src/RateDamper.cpp
   )
 

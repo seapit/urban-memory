@@ -10,6 +10,7 @@
 #include <numbers>
 /// CMAKE INCLUDES
 // #include "RateDamper/version.h"
+#include "Common/Constants.hpp"
 
 /// USER INCLUDES
 
@@ -18,14 +19,6 @@
 /// DEFINES
 
 /// CODE
-
-// this is ugly but i don't know if there's a ready made library for conversions
-static inline constexpr std::size_t seconds_per_minute{
-    60}; // units of sec/minute
-static inline constexpr double seconds_to_minute{
-    1.0 / seconds_per_minute}; // units of minute/sec
-
-static inline constexpr double pi{std::numbers::pi};
 
 struct RateDamperConfiguration {
   // Limits
