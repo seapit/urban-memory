@@ -85,9 +85,12 @@ else()
 
   target_sources(
     ${LIB_NAME}
-    PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/inc/${LIB_NAME}/version.h" ${inc}/HMS.hpp
-    PRIVATE src/HMS.cpp
+    PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/inc/${LIB_NAME}/version.h"
+    PUBLIC ${inc}/SensorDefinitions.hpp
+    PUBLIC ${inc}/TelemetryDB.hpp
+    # PRIVATE  src/HMS.cpp
   )
+
 
   target_link_libraries(${LIB_NAME} INTERFACE Common)
 

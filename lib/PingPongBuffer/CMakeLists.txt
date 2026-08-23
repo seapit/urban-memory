@@ -75,7 +75,7 @@ else()
   # link, nothing to install() as a binary - if headers need to ship on
   # their own, install(DIRECTORY inc/${LIB_NAME} DESTINATION include)
   # covers it, since there's no LIBRARY/ARCHIVE/RUNTIME artifact to place.
-  add_library(${LIB_NAME} STATIC) # SHARED) # MODULE) # INTERFACE)
+  add_library(${LIB_NAME} INTERFACE) # SHARED) # MODULE) # INTERFACE)
 
   set(inc inc/${LIB_NAME})
 
@@ -86,13 +86,13 @@ else()
   target_sources(
     ${LIB_NAME}
     PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/inc/${LIB_NAME}/version.h" ${inc}/PingPongBuffer.hpp
-    PRIVATE src/PingPongBuffer.cpp
+    # PRIVATE src/PingPongBuffer.cpp
   )
 
-  target_include_directories(${LIB_NAME} PUBLIC ${PROJECT_BINARY_DIR}/inc/
+  target_include_directories(${LIB_NAME} INTERFACE ${PROJECT_BINARY_DIR}/inc/
                                                 ${CMAKE_CURRENT_SOURCE_DIR}/inc)
 
-  applyCommonTargetOptions(${LIB_NAME} PRIVATE)
+  applyCommonTargetOptions(${LIB_NAME} INTERFACE)
 endif()
 
 if(BUILD_TESTING)
