@@ -24,14 +24,17 @@ struct TMBase {
   // this parameter must be updated to the last time we measured the sensor
   // value from the database
   std::size_t timeStamp{0};
+  // Add the
+  bool valid{false};
 
   // should use a rolling average as our rate of change error
   // brief doesn't indicate if instantaneous values should trigger it or if it's
   // sustained, should probably have a configuration for this
-  double rollingAverageOfDerivedObj{0.0};
+  // double rollingAverageOfDerivedObj{0.0};
+  // Did the sensor update or not?
+  // scope creep
+  // bool sensorUpdateFault{false};
 
-  // Did the sensor update or not
-  bool sensorUpdateFault{false};
   // rate of change error
   bool rateChangeError{false};
   // thresholds
