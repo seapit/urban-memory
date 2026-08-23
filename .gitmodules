@@ -1,0 +1,3 @@
+[submodule ".cmakefiles"]
+	path = .cmakefiles
+	url = git@dragonnas.home:carlo/.cmakefiles.git
