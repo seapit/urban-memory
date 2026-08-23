@@ -43,5 +43,3 @@ struct healthMonitorConfiguration {
 
   std::array<sensorConfiguration, numberOfItemsMonitored> sensorConfigs;
 };
-
-struct ParameterDatabase {};

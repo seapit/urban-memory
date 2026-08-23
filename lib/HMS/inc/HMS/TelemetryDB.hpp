@@ -18,9 +18,7 @@
 // it works well for my home projects
 ENUM_EXACT_BASE_AND_STRING(TelemetryIds, RateController, Temperature, Voltage)
 
-struct TelemetrySet {
-
-}
+struct TelemetrySet {};
 
 /// NAMESPACE
 
