@@ -88,7 +88,7 @@ else()
     PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/inc/${LIB_NAME}/version.h"
     PUBLIC ${inc}/SensorDefinitions.hpp
     PUBLIC ${inc}/TelemetryDB.hpp
-    # PRIVATE  src/HMS.cpp
+    PRIVATE  src/HMS.cpp
   )
 
 

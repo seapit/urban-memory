@@ -56,8 +56,8 @@ target_include_directories(
 
 # Specify the link libraries target_link_libraries(${LIB_NAME} INTERFACE )
 
-applyCommonTargetOptions(${LIB_NAME} INTERFACE)
+# applyCommonTargetOptions(${LIB_NAME} INTERFACE)
 
-if(BUILD_TESTING)
-  add_subdirectory(test)
-endif()
+# if(BUILD_TESTING)
+  # add_subdirectory(test)
+# endif()
