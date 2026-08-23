@@ -75,7 +75,7 @@ else()
   # link, nothing to install() as a binary - if headers need to ship on
   # their own, install(DIRECTORY inc/${LIB_NAME} DESTINATION include)
   # covers it, since there's no LIBRARY/ARCHIVE/RUNTIME artifact to place.
-  add_library(${LIB_NAME} STATIC) # SHARED) # MODULE) # INTERFACE)
+  add_library(${LIB_NAME} STATIC ) # SHARED) # MODULE) # INTERFACE)
 
   set(inc inc/${LIB_NAME})
 
@@ -88,6 +88,8 @@ else()
     PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/inc/${LIB_NAME}/version.h" ${inc}/HMS.hpp
     PRIVATE src/HMS.cpp
   )
+
+  target_link_libraries(${LIB_NAME} INTERFACE Common)
 
   target_include_directories(${LIB_NAME} PUBLIC ${PROJECT_BINARY_DIR}/inc/
                                                 ${CMAKE_CURRENT_SOURCE_DIR}/inc)
