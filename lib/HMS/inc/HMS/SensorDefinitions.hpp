@@ -35,7 +35,8 @@ struct sensorState {
 
   std::size_t lastTMGenerationtime_ticks{};
   std::size_t numberOfSamples{0};
-}
+  bool hasfirstSample{false};
+};
 
 struct sensorConfiguration {
   std::string name{};
