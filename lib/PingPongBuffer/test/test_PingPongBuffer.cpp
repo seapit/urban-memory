@@ -68,7 +68,7 @@ TEST_F(PingPongBufferTest, IncrementHelperTest) {
 // Thank god I did this test, implemented a bug
 // used
 TEST_F(PingPongBufferTest, push) {
-  auto aSample = testBuffer->getLatest();
+  const auto &aSample = testBuffer->getLatest();
 
   EXPECT_EQ(aSample.samplesStored, aSimpleTelemetry.samplesStored);
   EXPECT_EQ(aSample.readValue, aSimpleTelemetry.readValue);
@@ -78,7 +78,7 @@ TEST_F(PingPongBufferTest, push) {
 
   testBuffer->update(aSimpleTelemetry);
 
-  auto aSecondSample = testBuffer->getLatest();
+  const auto &aSecondSample = testBuffer->getLatest();
 
   EXPECT_EQ(aSecondSample.samplesStored, aSimpleTelemetry.samplesStored);
   EXPECT_EQ(aSecondSample.readValue, aSimpleTelemetry.readValue);
@@ -92,14 +92,23 @@ TEST_F(PingPongBufferTest, push) {
   testBuffer->update(aSimpleTelemetry);
 
   auto aSThirdSample = testBuffer->getLatest();
+  const auto &aExtraSample = testBuffer->getLatest();
 
   EXPECT_EQ(aSThirdSample.samplesStored, aSimpleTelemetry.samplesStored);
   EXPECT_EQ(aSThirdSample.readValue, aSimpleTelemetry.readValue);
   EXPECT_EQ(aSThirdSample.timestamp, aSimpleTelemetry.timestamp);
-  EXPECT_NE(aSample.samplesStored, aSimpleTelemetry.samplesStored);
-  EXPECT_NE(aSample.readValue, aSimpleTelemetry.readValue);
-  EXPECT_NE(aSample.timestamp, aSimpleTelemetry.timestamp);
+  EXPECT_EQ(aSample.samplesStored, aSimpleTelemetry.samplesStored);
+  EXPECT_EQ(aSample.readValue, aSimpleTelemetry.readValue);
+  EXPECT_EQ(aSample.timestamp, aSimpleTelemetry.timestamp);
   EXPECT_NE(aSecondSample.samplesStored, aSimpleTelemetry.samplesStored);
   EXPECT_NE(aSecondSample.readValue, aSimpleTelemetry.readValue);
   EXPECT_NE(aSecondSample.timestamp, aSimpleTelemetry.timestamp);
+
+  // const ref vs auto
+  EXPECT_NE(&aSample, &aSThirdSample);
+
+  EXPECT_NE(&aSecondSample, &aSThirdSample);
+
+  // test const ref to the same const ref
+  EXPECT_EQ(&aSample, &aExtraSample);
 };
