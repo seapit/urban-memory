@@ -13,10 +13,11 @@
 
 /// USER INCLUDES
 #include "Common/HelperMacros.hpp"
+#include "PingPongBuffer/PingPongBuffer.hpp"
 
 // this is a helper function I didn't create (from Stack Overflow)
 // it works well for my home projects
-ENUM_EXACT_BASE_AND_STRING(TelemetryIds, RateController, Temperature, Voltage)
+ENUM_EXACT_AND_STRING(TelemetryIds, RateController, Temperature, Voltage)
 
 struct TelemetrySet {};
 
@@ -34,7 +35,7 @@ public:
    * \brief Construct a new Template object
    *
    */
-  TelemetryDB();
+  void publish(TelemetryId rhsId, const)
 
   // protected:
 

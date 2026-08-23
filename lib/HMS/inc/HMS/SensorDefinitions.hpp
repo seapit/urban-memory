@@ -8,6 +8,8 @@
 // #include <csignal>
 // #include <cstdio>
 #include <array>
+#include <atomic>
+#include <chrono>
 #include <string>
 
 /// CMAKE INCLUDES
@@ -20,10 +22,16 @@
 /// DEFINES
 
 /// CODE
-
+struct tmSample {
+  std::size_t samplesStored{0};
+  double readValue{0.0};
+  std::size_t timestamp{0};
+};
 struct sensorConfiguration {
   std::string name{};
   std::string units{};
+
+  std::chrono::milliseconds samplingPeriod_ms{};
 
   // can be expanded
   // probably would add hysterisis
