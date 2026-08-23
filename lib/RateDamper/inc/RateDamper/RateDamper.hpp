@@ -67,6 +67,8 @@ struct RateDamperConfiguration {
   // (math is probably off here)
   // any value >0 would converge? I think?
   // lets go with a damping factor between [0.0, 1.0]
+  // https://ntrs.nasa.gov/api/citations/19980236616/downloads/19980236616.pdf
+  // page 13 #3 indicates the use .2 or .5, initial assumption is correct
 
   // torque = Nm, w = rad/sec
   // must have units of N * m * sec/rad
