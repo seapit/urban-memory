@@ -1,0 +1,26 @@
+# Build output
+build/
+out/
+cmake-build-*/
+*.o
+*.a
+*.so
+*.d
+
+# Compiler / tooling artefacts
+compile_commands.json
+.cache/
+*.gcda
+*.gcno
+*.gcov
+perf.data*
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# Local environment
+.env
+.direnv/

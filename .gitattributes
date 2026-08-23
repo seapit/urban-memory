@@ -1,0 +1,11 @@
+* text=auto eol=lf
+
+*.hpp  text diff=cpp
+*.cpp  text diff=cpp
+*.h    text diff=cpp
+*.c    text diff=cpp
+*.md   text diff=markdown
+*.sh   text eol=lf
+
+*.png  binary
+*.pdf  binary
