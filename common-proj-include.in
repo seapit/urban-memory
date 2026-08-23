@@ -1,0 +1,2 @@
+# common-proj-include.in
+include("${CMAKE_CURRENT_SOURCE_DIR}/proj.in")
