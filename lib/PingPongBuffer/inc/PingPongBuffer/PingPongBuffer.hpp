@@ -32,7 +32,7 @@ public:
   // if using multiple buffers, would just ensure power of 2 and use masking and
   // a size_t to not need to keep track of bounds, and overflows are still valid
   // with this
-  void update(T &rhsSensorInput) noexcept {
+  void update(const T &rhsSensorInput) noexcept {
     const auto currentIndex = getNextIndex();
     samples[currentIndex] = std::move(rhsSensorInput);
     ping_pong.store(currentIndex);

@@ -40,11 +40,14 @@ public:
    * \brief Construct a new Template object
    *
    */
-  void publish(TelemetryIds rhsId, tmSample rhsSample) {}
+  inline void publish(TelemetryIds rhsId, const tmSample &rhsSample) {
+    criticalTMEntries[static_cast<std::size_t>(rhsId)].update(rhsSample);
+  }
 
   // protected:
 
-  // private:
-  std::array < PingPongBuffer<tmSample>,
-      static_cast<std::size_t(TelemetryIds::MAX)> criticalTMEntries;
+private:
+  std::array<PingPongBuffer<tmSample>,
+             static_cast<std::size_t>(TelemetryIds::MAX)>
+      criticalTMEntries;
 };
