@@ -1,3 +1,5 @@
+#include "RateDamper/RateDamper.hpp"
+#include "RateDamper/Wheels/RW1000.hpp"
 #include <gtest/gtest.h>
 // Define a test fixture class
 class RateDamperTest : public ::testing::Test { // NOSONAR
@@ -22,7 +24,12 @@ protected:
     // Code here will be called immediately after each test (right
     // before the destructor).
   }
+  RateDamper(RW1000Configuration);
 };
 
 // Test cases using the test fixture
 TEST_F(RateDamperTest, InitProbably) {}
+
+TEST_F(RateDamperTest, Bounds_Torque) { auto aLowValue = 0; }
+TEST_F(RateDamperTest, Bounds_Voltage) {}
+TEST_F(RateDamperTest, Bounds_AngularRate) {}

@@ -5,11 +5,13 @@
 
 /// INCLUDES
 #include <algorithm>
+#include <cmath>
 
 /// CMAKE INCLUDES
 // #include "version.h"
 
 /// USER INCLUDES
+#include "Common/HelperMacros.hpp"
 #include "RateDamper/RateDamper.hpp"
 
 /// NAMESPACE
@@ -29,8 +31,6 @@ double RateDamper::control(double rhsAngularRate_rad_sec) noexcept {
 };
 
 double RateDamper::boundedTorqueValidation(double rhsInput) noexcept {
-  // std::clamp returns a ref
-
   aRetVal = std::clamp(rhsInput, (0 - damperConfig.outputTorque_Floor_N_m),
                        damperConfig.outputTorque_Floor_N_m);
   return aReturn;
@@ -46,8 +46,21 @@ double RateDamper::boundedVoltageValidation(double rhsInput) noexcept {
 };
 
 double RateDamper::boundedAngularRateValidation(double rhsInput) noexcept {
-  double aMaximumRate = damperConfig.convertAngularRate_rpm_to_rad_sec();
-  aRetVal = std::clamp(rhsInput, (0 - aMaximumRate), aMaximumRate);
+  // the maximum torque we get at full power would be 1Nm
+  // our damping factor is .5. I think that what we can actually bound for is
+  // the body rate
+  double aMaximumAngularInputRate = damperConfig.outputTorque_Floor_N_m /
+                                    damperConfig.dampingGain_N_m_s_per_rad;
+
+  aRetVal = std::clamp(rhsInput, (0 - aMaximumAngularInputRate),
+                       aMaximumAngularInputRate);
+
+  // from CPPref, we must avoid NaNs so just check that it's infinite and then
+  // update accordingly
+  if (std::isfinite(rhsInput) == false) {
+    aReturn = 0.0;
+  }
+
   return aReturn;
 }
 // protected:
