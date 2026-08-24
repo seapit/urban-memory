@@ -17,7 +17,12 @@
 
 // this is a helper function I didn't create (from Stack Overflow)
 // it works well for my home projects
-ENUM_EXACT_AND_STRING(TelemetryIds, RateController, Temperature, Voltage)
+ENUM_AND_STRING(TelemetryIds, (RateController), (Temperature), (Voltage))
+
+struct tmSample {
+  double readValue{0.0};
+  std::size_t timestamp{0};
+};
 
 struct TelemetrySet {};
 
@@ -35,9 +40,11 @@ public:
    * \brief Construct a new Template object
    *
    */
-  void publish(TelemetryId rhsId, const)
+  void publish(TelemetryIds rhsId, tmSample rhsSample) {}
 
   // protected:
 
   // private:
+  std::array < PingPongBuffer<tmSample>,
+      static_cast<std::size_t(TelemetryIds::MAX)> criticalTMEntries;
 };

@@ -16,20 +16,22 @@
 // #include "Lib1/version.h"
 
 /// USER INCLUDES
+#include "HMS/TelemetryDB.hpp"
 
 /// NAMESPACE
 
 /// DEFINES
 
 /// CODE
-struct tmSample {
-  double readValue{0.0};
-  std::size_t timestamp{0};
-};
-
 struct sensorState {
-  bool outOfRange{false};
+  // Explicitly from question 2b
+  // ensure these values are updated if we ever have an issue
+  bool outOfRange_Low{false};
+  bool outOfRange_High{false};
+  bool outOfRange_RateOfChange{false};
+
   bool staleValues{false};
+
   double lastValue{0.0};
   double lastRateOfChange{0.0};
 
@@ -42,14 +44,13 @@ struct sensorConfiguration {
   std::string name{};
   std::string units{};
 
-  std::chrono::milliseconds samplingPeriod_ms{};
+  std::size_t samplingPeriod_ticks{0};
 
+  // LIMIT CONFIGURATIONS:
   // can be expanded
   // probably would add hysterisis
   double lowLimit{0.0};
   double highLimit{0.0};
-
-  // rate of change in units/sec
   double maxAbsoluteRateOfChange_UnitHz{0.0};
 
   // placeholder
@@ -57,8 +58,7 @@ struct sensorConfiguration {
 };
 
 struct healthMonitorConfiguration {
-  // from the brief, must monitor 3 different channels
-  static inline constexpr std::size_t numberOfItemsMonitored{3};
 
-  std::array<sensorConfiguration, numberOfItemsMonitored> sensorConfigs;
+  std::array<sensorConfiguration, static_cast<std::size_t(TelemetryIds::MAX)>>
+      sensorConfigs;
 };
