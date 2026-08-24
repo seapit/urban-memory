@@ -43,19 +43,11 @@ public:
 private:
   healthMonitorConfiguration stored_Configuration;
   std::array<sensorState, healthMonitorConfiguration::requiredNumberofChannels>
-      sensorState;
-
-  std::array<sensorConfiguration,
-             healthMonitorConfiguration::requiredNumberofChannels>
-      sensorConfigurations;
+      sensorStates;
 
   // sufficient for a rate of change calculation
-  // can
   std::array<tmSample, healthMonitorConfiguration::requiredNumberofChannels>
       previousSample{};
-
-  std::array<std::size_t, healthMonitorConfiguration::requiredNumberofChannels>
-      oldestSampleIndex{};
 
   const TelemetryDB &telemetryDatabase;
 };
