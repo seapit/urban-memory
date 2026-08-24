@@ -11,7 +11,7 @@
 // #include "version.h"
 
 /// USER INCLUDES
-#include "HMS/SensorDefinitions.hpp"
+#include "HMS/HealthMonitor.hpp"
 
 /// NAMESPACE
 

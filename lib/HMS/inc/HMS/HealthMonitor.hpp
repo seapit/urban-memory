@@ -11,7 +11,8 @@
 // #include "HMS/version.h"
 
 /// USER INCLUDES
-#include "HMS/SensorDefinitions.hpp"
+#include "HMS/Configuration.hpp"
+#include "HMS/SensorState.hpp"
 #include "HMS/TelemetryDB.hpp"
 
 /// NAMESPACE

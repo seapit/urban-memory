@@ -86,7 +86,8 @@ else()
   target_sources(
     ${LIB_NAME}
     PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/inc/${LIB_NAME}/version.h"
-    PUBLIC ${inc}/SensorDefinitions.hpp
+    PUBLIC ${inc}/Configuration.hpp
+    PUBLIC ${inc}/SensorState.hpp
     PUBLIC ${inc}/TelemetryDB.hpp
     PUBLIC ${inc}/HealthMonitor.hpp
     PRIVATE  src/HMS.cpp

@@ -21,22 +21,6 @@
 /// DEFINES
 
 /// CODE
-struct sensorState {
-  // Explicitly from question 2b
-  // ensure these values are updated if we ever have an issue
-  bool outOfRange_Low{false};
-  bool outOfRange_High{false};
-  bool outOfRange_RateOfChange{false};
-
-  bool staleValues{false};
-
-  double lastValue{0.0};
-  double lastRateOfChange{0.0};
-
-  std::size_t lastTMGenerationtime_ticks{};
-  std::size_t numberOfSamples{0};
-  bool hasfirstSample{false};
-};
 
 struct sensorConfiguration {
   // For Logging/printouts
