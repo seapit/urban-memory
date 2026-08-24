@@ -5,8 +5,6 @@
 
 #pragma once
 /// INCLUDES
-// #include <csignal>
-// #include <cstdio>
 #include <array>
 #include <atomic>
 
@@ -22,6 +20,7 @@
 /// CODE
 /**
  * \class PingPongBuffer
+ * \note template obliges that this is defined only in a header
  */
 template <class T> class PingPongBuffer {
   static inline constexpr std::size_t numberOfBuffers{2};

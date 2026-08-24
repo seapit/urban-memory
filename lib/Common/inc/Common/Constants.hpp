@@ -7,8 +7,6 @@
 #ifndef CONSTANTS__
 #define CONSTANTS__
 /// INCLUDES
-// #include <csignal>
-// #include <cstdio>
 
 /// CMAKE INCLUDES
 // #include "Common/version.h"
@@ -19,12 +17,11 @@
 
 /// DEFINES
 // this is ugly but i don't know if there's a ready made library for conversions
-static inline constexpr std::size_t seconds_per_minute{
-    60}; // units of sec/minute
-static inline constexpr double seconds_to_minute{
+inline constexpr std::size_t seconds_per_minute{60}; // units of sec/minute
+inline constexpr double seconds_to_minute{
     1.0 / seconds_per_minute}; // units of minute/sec
 
-static inline constexpr double pi{std::numbers::pi};
+inline constexpr double pi{std::numbers::pi};
 
 /// CODE
 

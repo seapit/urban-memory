@@ -5,8 +5,6 @@
 
 #pragma once
 /// INCLUDES
-// #include <csignal>
-// #include <cstdio>
 #include <array>
 #include <atomic>
 #include <chrono>
@@ -16,7 +14,7 @@
 // #include "Lib1/version.h"
 
 /// USER INCLUDES
-#include "HMS/TelemetryDB.hpp"
+// #include "HMS/TelemetryDB.hpp"
 
 /// NAMESPACE
 
@@ -41,14 +39,13 @@ struct sensorState {
 };
 
 struct sensorConfiguration {
+  // For Logging/printouts
   std::string name{};
   std::string units{};
 
   std::size_t samplingPeriod_ticks{0};
 
   // LIMIT CONFIGURATIONS:
-  // can be expanded
-  // probably would add hysterisis
   double lowLimit{0.0};
   double highLimit{0.0};
   double maxAbsoluteRateOfChange_UnitHz{0.0};
@@ -58,7 +55,19 @@ struct sensorConfiguration {
 };
 
 struct healthMonitorConfiguration {
+  static inline constexpr std::size_t requiredNumberofChannels{3};
 
-  std::array<sensorConfiguration, static_cast<std::size_t(TelemetryIds::MAX)>>
-      sensorConfigs;
+  std::array<sensorConfiguration, requiredNumberofChannels> sensorConfigs;
+
+  // opportunity to show I know how to do single returns per function
+  constexpr bool isConfigurationRealistic() const noexcept {
+    bool isAValidConfig{true};
+    for (const auto &configuration : sensorConfigs) {
+
+      isAValidConfig = isAValidConfig &&
+                       ((configuration.lowLimit <= configuration.highLimit) &&
+                        (configuration.samplingPeriod_ticks != 0));
+    }
+    return isAValidConfig;
+  }
 };
