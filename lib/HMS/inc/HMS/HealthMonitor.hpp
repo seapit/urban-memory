@@ -11,6 +11,7 @@
 // #include "HMS/version.h"
 
 /// USER INCLUDES
+#include "Alarm/AlarmReceiver.hpp"
 #include "Databases/TelemetryDB.hpp"
 #include "HMS/Configuration.hpp"
 #include "HMS/SensorState.hpp"
@@ -31,8 +32,9 @@ public:
    *
    */
   HealthMonitor(healthMonitorConfiguration &rhsConfiguration,
-                const CriticalTelemetryDB &rhsDB)
-      : stored_Configuration(rhsConfiguration), telemetryDatabase(rhsDB) {};
+                const CriticalTelemetryDB &rhsDB, AlarmReceiver &rhsAlarmer)
+      : stored_Configuration(rhsConfiguration), telemetryDatabase(rhsDB),
+        alarmDestination(rhsAlarmer) {};
 
   // for the demo
   void step(std::chrono::milliseconds rhsElapsedTime) noexcept;
@@ -62,4 +64,5 @@ private:
       previousSample{};
 
   const CriticalTelemetryDB &telemetryDatabase;
+  AlarmReceiver &alarmDestination;
 };
