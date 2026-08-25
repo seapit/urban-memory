@@ -23,7 +23,9 @@
 // this exists to create an enum class automatically and a string_View I can use
 // for reflection
 // there are libraries that do this better.
-ENUM_AND_STRING(TelemetryIds, (RateController), (Temperature), (Voltage))
+ENUM_AND_STRING(TelemetryIds, (RateController1_x_AngularRate), (Temperature_1),
+                (RateController2_x_AngularRate), (Temperature_2),
+                (RateController3_x_AngularRate), (Voltage))
 
 // What's stored in the database
 struct tmSample {
