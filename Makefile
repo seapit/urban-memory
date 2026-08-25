@@ -71,18 +71,25 @@ help:
 	@echo "CHIP=<chip> at config time only picks what the plain module name resolves"
 	@echo "to, for consumers (apps) that don't want to hardcode a chip."
 
+copy-compile-commands:
+	@echo "Copying compile_commands.json from build/$(PRESET)..."
+	@cp build/$(PRESET)/output/compile_commands.json ./ 2>/dev/null || echo "Warning: compile_commands.json not found in build/$(PRESET)/"
+
 .PHONY: config config-testdeb config-testrel
 config:
 	@echo "Configuring with preset $(PRESET), chip $(CHIP) (Release)..."
 	@cmake --preset=$(PRESET) -DCMAKE_BUILD_TYPE=Release -DCHIP=$(CHIP) --log-level=WARNING
+	@$(MAKE) copy-compile-commands
 
 config-testdeb:
 	@echo "Configuring with preset $(PRESET), chip $(CHIP) (Debug+Tests)..."
 	@cmake --preset=$(PRESET) -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DCHIP=$(CHIP) --log-level=WARNING
+	@$(MAKE) copy-compile-commands
 
 config-testrel:
 	@echo "Configuring with preset $(PRESET), chip $(CHIP) (Release+Tests)..."
 	@cmake --preset=$(PRESET) -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DCHIP=$(CHIP) --log-level=WARNING
+	@$(MAKE) copy-compile-commands
 
 # Build specified target
 .PHONY: tgt
