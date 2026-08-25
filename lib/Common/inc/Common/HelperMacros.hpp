@@ -3,9 +3,6 @@
  * \brief A file that contains a collection of helper macros
  */
 #pragma once
-#ifndef HELPERMACROS__
-#define HELPERMACROS__
-
 /// INCLUDES
 #include <string_view>
 
@@ -81,5 +78,3 @@
 
 // I am lazy
 #define aRetVal auto aReturn
-
-#endif // HELPERMACROS__

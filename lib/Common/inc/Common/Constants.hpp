@@ -4,8 +4,6 @@
  */
 
 #pragma once
-#ifndef CONSTANTS__
-#define CONSTANTS__
 /// INCLUDES
 
 /// CMAKE INCLUDES
@@ -24,5 +22,3 @@ inline constexpr double seconds_to_minute{
 inline constexpr double pi{std::numbers::pi};
 
 /// CODE
-
-#endif // CONSTANTS__
