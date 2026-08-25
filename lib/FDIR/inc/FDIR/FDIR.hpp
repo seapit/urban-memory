@@ -6,7 +6,7 @@
 #pragma once
 /// INCLUDES
 #include <chrono>
-#include <cstdint>
+#include <cstddef>
 
 /// CMAKE INCLUDES
 // #include "FDIR/version.h"
@@ -43,18 +43,23 @@ public:
     alarmBuffer.try_push(rhsInput);
   }
 
+  // only one alarm can be actioned at a time, we are simulating an RTOS
+  // tasks are bounded and shouldn't slip
+  // decide which alarms are ok, THEN action the first one we can.
   void step(std::chrono::milliseconds rhsElapsedTime) noexcept {
     alarmEntry aAlarm;
     // loop will keep executing as long as there are things in the queue
+    // we should ensure these are valid before we address them
     while (alarmBuffer.try_pop(aAlarm)) {
-      actionAlarm(aAlarm);
+      checkAlarmValidity(aAlarm);
     }
   }
 
+  void actionAlarm() {}
   // protected:
 
 private:
-  void actionAlarm(const alarmEntry &rhsEntry) {
+  void checkAlarmValidity(const alarmEntry &rhsEntry) {
 
     // filter out TMs we cant action
     // ensure it's valid
