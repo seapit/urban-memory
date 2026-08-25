@@ -37,6 +37,12 @@ public:
   // for the demo
   void step(std::chrono::milliseconds rhsElapsedTime) noexcept;
 
+  /**
+   * \brief indicate a sensor has received values, this is just to catch an
+   * error on first use I saw at my job
+   *
+   * \param rhsId - id
+   */
   void flagPrimedSensor(TelemetryIds rhsId) const noexcept;
 
   void evaluateRateOfChange() const noexcept;
