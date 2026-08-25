@@ -7,8 +7,7 @@
 /// INCLUDES
 #include "Telemetry/Telemetry.hpp"
 #include <array>
-#include <atomic>
-#include <chrono>
+#include <cstddef>
 #include <string_view>
 
 /// CMAKE INCLUDES
@@ -37,6 +36,17 @@
 struct channelConfiguration {
   static constexpr std::size_t maximumNumberOfIDs{3};
 
+  // helper function to initialize the elements of an array
+  static constexpr std::array<TelemetryIds, maximumNumberOfIDs>
+  fillArrayWithInvalid() noexcept {
+    std::array<TelemetryIds, maximumNumberOfIDs> aTemporaryArray;
+
+    for (auto &element : aTemporaryArray) {
+      element = TelemetryIds::MAX;
+    }
+    return aTemporaryArray;
+  }
+
   // For Logging/printouts
   std::string_view name{};
   std::string_view units{};
@@ -48,8 +58,8 @@ struct channelConfiguration {
   double highLimit{0.0};
   double maxAbsoluteRateOfChange_UnitHz{0.0};
 
-  std::array<TelemetryIds, maximumNumberOfIDs> telemetryToMonitor{
-      TelemetryIds::MAX};
+  std::array<TelemetryIds, maximumNumberOfIDs> telemetryToMonitor =
+      fillArrayWithInvalid();
 
   // placeholder
   std::size_t numberOfRollingAverageSamples{0};
