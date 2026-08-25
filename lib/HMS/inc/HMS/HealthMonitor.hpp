@@ -52,11 +52,10 @@ public:
   // protected:
 
 private:
-  void executionLoop(std::size_t rhsChannel) const noexcept;
+  void executionLoop(const std::size_t rhsIndex) const noexcept;
 
   healthMonitorConfiguration stored_Configuration;
-  std::array<sensorState, healthMonitorConfiguration::requiredNumberofChannels>
-      sensorStates;
+  std::array<sensorState, sizecast(TelemetryIds::MAX)> sensorStates;
 
   // sufficient for a rate of change calculation
   std::array<tmSample, healthMonitorConfiguration::requiredNumberofChannels>
