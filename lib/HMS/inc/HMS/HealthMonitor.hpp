@@ -45,11 +45,13 @@ public:
    *
    * \param rhsId - id
    */
-  void flagPrimedSensor(TelemetryIds rhsId) const noexcept;
+  void flagPrimedSensor(sensorState &rhsSensor,
+                        const tmSample &rhsSample) const noexcept;
 
-  void evaluateRateOfChange() const noexcept;
+  void evaluateRateOfChange(sensorState &rhsSensor,
+                            const tmSample &rhsSample) const noexcept;
 
-  bool isOutOfLimits(TelemetryIds rhsID) const noexcept;
+  bool isOutOfLimits(const sensorState &rhsSensor) const noexcept;
 
   // protected:
 
