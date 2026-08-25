@@ -7,7 +7,7 @@
 /// INCLUDES
 #include "Alarm/Alarm.hpp"
 #include <array>
-#include <cstdint>
+#include <cstddef>
 
 /// CMAKE INCLUDES
 // #include "FDIR/version.h"
@@ -63,7 +63,7 @@ public:
    * \return true  - on success
    * \return false  - on fail
    */
-  bool try_pop(const alarmEntry &rhsAlarm) noexcept {
+  bool try_pop(alarmEntry &rhsAlarm) noexcept {
     bool aReturn{false};
     if (numberOfEntries > 0) {
       auto index = (consumerIndex & (Size - 1));

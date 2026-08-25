@@ -5,6 +5,8 @@
 
 #pragma once
 /// INCLUDES
+#include <array>
+
 /// CMAKE INCLUDES
 // #include "Lib1/version.h"
 

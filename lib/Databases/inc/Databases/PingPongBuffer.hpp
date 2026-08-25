@@ -7,6 +7,7 @@
 /// INCLUDES
 #include <array>
 #include <atomic>
+#include <cstddef>
 
 /// CMAKE INCLUDES
 // #include "PingPongBuffer/version.h"
@@ -37,7 +38,7 @@ public:
     ping_pong.store(currentIndex);
   }
 
-  const T &getLatest() const noexcept { return samples[ping_pong.load()]; }
+  T getLatest() const noexcept { return samples[ping_pong.load()]; }
 
 private:
   // just use an XOR to swap between the buffers

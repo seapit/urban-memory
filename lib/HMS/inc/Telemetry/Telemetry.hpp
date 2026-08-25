@@ -5,6 +5,7 @@
 
 #pragma once
 /// INCLUDES
+#include <cstddef>
 
 /// CMAKE INCLUDES
 // #include "Telemetry/version.h"

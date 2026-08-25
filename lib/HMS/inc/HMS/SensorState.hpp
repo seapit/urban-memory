@@ -5,7 +5,7 @@
 
 #pragma once
 /// INCLUDES
-#include <cstdint>
+#include <cstddef>
 
 /// CMAKE INCLUDES
 // #include "HMS/version.h"

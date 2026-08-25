@@ -5,6 +5,8 @@
 
 #pragma once
 /// INCLUDES
+#include <cstddef>
+#include <numbers>
 
 /// CMAKE INCLUDES
 // #include "Common/version.h"
