@@ -15,7 +15,8 @@
 #include "Alarm/Alarm.hpp"
 #include "Common/HelperMacros.hpp"
 #include "HMS/Configuration.hpp"
-#include <cstdlib>
+
+#include <cstddef>
 
 /// NAMESPACE
 
@@ -28,10 +29,16 @@ void HealthMonitor::step(std::chrono::milliseconds rhsElapsedTime) noexcept {
   if (ticks == 0) {
     return;
   }
+  const std::size_t elapsedTicks = sizecast(rhsElapsedTime.count());
 
   for (std::size_t i = 0;
        i < sizecast(healthMonitorConfiguration::requiredNumberofChannels);
        ++i) {
+    const std::size_t samplingPeriod =
+        stored_Configuration.sensorConfigs[i].samplingPeriod_ticks;
+    if ((samplingPeriod == 0) || ((elapsedTicks % samplingPeriod) != 0)) {
+      continue;
+    }
     executionLoop(i);
   }
 }
@@ -63,14 +70,14 @@ bool HealthMonitor::isOutOfLimits(const sensorState &rhsSensor) const noexcept {
           rhsSensor.outOfRange_RateOfChange);
 }
 
-void HealthMonitor::executionLoop(const std::size_t rhsIndex) const noexcept {
+void HealthMonitor::executionLoop(const std::size_t rhsIndex) noexcept {
   // get the configuration we need for this channel's index
-  auto aChannelCfg = stored_Configuration.sensorConfigs[rhsIndex];
+  const auto &aChannelCfg = stored_Configuration.sensorConfigs[rhsIndex];
 
   // for each channel's associated telemetry
   for (const auto &associatedTM : aChannelCfg.telemetryToMonitor) {
     // get the appropriate sensor
-    auto aSensor = sensorStates[sizecast(associatedTM)];
+    auto &aSensor = sensorStates[sizecast(associatedTM)];
 
     // load its telemetry
     const auto &aTelemetry = telemetryDatabase.getLatest(associatedTM);
