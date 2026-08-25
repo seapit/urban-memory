@@ -19,12 +19,11 @@
 // there are libraries that do this better.
 ENUM_AND_STRING(TelemetryIds, (RateController), (Temperature), (Voltage))
 
+// What's stored in the database
 struct tmSample {
   double readValue{0.0};
   std::size_t timestamp{0};
 };
-
-struct TelemetrySet {};
 
 /// NAMESPACE
 
@@ -32,12 +31,12 @@ struct TelemetrySet {};
 
 /// CODE
 /**
- * \class TelemetryDB
+ * \class CriticalTelemetryDB
  */
-class TelemetryDB {
+class CriticalTelemetryDB {
 public:
   /**
-   * \brief Construct a new Template object
+   * \brief Construct a new TelemetryDB object
    *
    */
   inline void publish(TelemetryIds rhsId, const tmSample &rhsSample) {
