@@ -11,9 +11,9 @@
 // #include "HMS/version.h"
 
 /// USER INCLUDES
+#include "Databases/TelemetryDB.hpp"
 #include "HMS/Configuration.hpp"
 #include "HMS/SensorState.hpp"
-#include "HMS/TelemetryDB.hpp"
 
 /// NAMESPACE
 
@@ -30,9 +30,10 @@ public:
    *
    */
   HealthMonitor(healthMonitorConfiguration &rhsConfiguration,
-                const TelemetryDB &rhsDB)
+                const CriticalTelemetryDB &rhsDB)
       : stored_Configuration(rhsConfiguration), telemetryDatabase(rhsDB) {};
 
+  // for the demo
   void step(std::chrono::milliseconds rhsElapsedTime) noexcept;
 
   void flagPrimedSensor(TelemetryIds rhsId) const noexcept;
@@ -50,5 +51,5 @@ private:
   std::array<tmSample, healthMonitorConfiguration::requiredNumberofChannels>
       previousSample{};
 
-  const TelemetryDB &telemetryDatabase;
+  const CriticalTelemetryDB &telemetryDatabase;
 };

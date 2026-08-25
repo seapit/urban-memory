@@ -7,9 +7,8 @@
 #define HELPERMACROS__
 
 /// INCLUDES
-// #include <csignal>
-// #include <cstdio>
-//
+#include <string_view>
+
 /// USER INCLUDES
 
 /// NAMESPACE
