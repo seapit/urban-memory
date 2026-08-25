@@ -11,19 +11,7 @@
 /// USER INCLUDES
 #include "Common/HelperMacros.hpp"
 #include "PingPongBuffer/PingPongBuffer.hpp"
-
-// this is a helper function I didn't create (from Stack Overflow)
-// it works well for my home projects
-// this exists to create an enum class automatically and a string_View I can use
-// for reflection
-// there are libraries that do this better.
-ENUM_AND_STRING(TelemetryIds, (RateController), (Temperature), (Voltage))
-
-// What's stored in the database
-struct tmSample {
-  double readValue{0.0};
-  std::size_t timestamp{0};
-};
+#include "Telemetry/Telemetry.hpp"
 
 /// NAMESPACE
 

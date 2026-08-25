@@ -14,6 +14,7 @@
 #include "Databases/TelemetryDB.hpp"
 #include "HMS/Configuration.hpp"
 #include "HMS/SensorState.hpp"
+#include "Telemetry/Telemetry.hpp"
 
 /// NAMESPACE
 
@@ -40,9 +41,13 @@ public:
 
   void evaluateRateOfChange() const noexcept;
 
+  bool isOutOfLimits(TelemetryIds rhsID) const noexcept;
+
   // protected:
 
 private:
+  void executionLoop(std::size_t rhsChannel) const noexcept;
+
   healthMonitorConfiguration stored_Configuration;
   std::array<sensorState, healthMonitorConfiguration::requiredNumberofChannels>
       sensorStates;
