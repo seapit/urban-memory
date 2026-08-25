@@ -37,7 +37,7 @@ public:
     ping_pong.store(currentIndex);
   }
 
-  const T &getLatest() noexcept { return samples[ping_pong.load()]; }
+  const T &getLatest() const noexcept { return samples[ping_pong.load()]; }
 
 private:
   // just use an XOR to swap between the buffers

@@ -28,17 +28,16 @@ public:
    *
    */
   inline void publish(TelemetryIds rhsId, const tmSample &rhsSample) {
-    criticalTMEntries[static_cast<std::size_t>(rhsId)].update(rhsSample);
+    criticalTMEntries[sizecast(rhsId)].update(rhsSample);
   }
 
-  inline tmSample getLatest(TelemetryIds rhsId) {
-    return criticalTMEntries[static_cast<std::size_t>(rhsId)].getLatest();
+  inline const tmSample getLatest(TelemetryIds rhsId) const {
+    return criticalTMEntries[sizecast(rhsId)].getLatest();
   }
 
   // protected:
 
 private:
-  std::array<PingPongBuffer<tmSample>,
-             static_cast<std::size_t>(TelemetryIds::MAX)>
+  std::array<PingPongBuffer<tmSample>, sizecast(TelemetryIds::MAX)>
       criticalTMEntries;
 };
