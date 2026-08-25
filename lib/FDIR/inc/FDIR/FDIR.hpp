@@ -1,5 +1,5 @@
 /**
- * \file AlarmReceiver.hpp
+ * \file FDIR.hpp
  * \brief A brief description of what this file is.
  */
 
@@ -9,9 +9,10 @@
 // #include <cstdio>
 
 /// CMAKE INCLUDES
-// #include "HMS/version.h"
+// #include "FDIR/version.h"
 
 /// USER INCLUDES
+#include "Alarm/AlarmReceiver.hpp"
 #include "HMS/Alarm.hpp"
 
 /// NAMESPACE
@@ -20,16 +21,17 @@
 
 /// CODE
 /**
- * \class AlarmReceiver
+ * \class FDIR
  */
-class AlarmReceiver {
+class FDIR : public AlarmReceiver {
 public:
-  virtual void raiseAlarm(const Alarm &rhs) noexcept = 0;
   /**
-   * \brief Construct a new AlarmReceiver object
+   * \brief Construct a new FDIR object
    *
    */
-  virtual ~AlarmReceiver();
+  FDIR();
+
+  void alarm(Alarm rhsInput) noexcept override {}
 
   // protected:
 

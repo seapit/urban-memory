@@ -23,28 +23,28 @@ ENUM_AND_STRING(alarm, (empty, 0), (too_low, 1), (too_high, 1 << 1),
 /// DEFINES
 
 /// CODE
-constexpr alarm operator&(alarm lhs, alarm rhs) noexcept {
-  return static_cast<alarm>(static_cast<std::uint8_t>(lhs) &
+constexpr Alarm operator&(Alarm lhs, Alarm rhs) noexcept {
+  return static_cast<Alarm>(static_cast<std::uint8_t>(lhs) &
                             static_cast<std::uint8_t>(rhs));
 };
 
-constexpr alarm operator|(alarm lhs, alarm rhs) noexcept {
-  return static_cast<alarm>(static_cast<std::uint8_t>(lhs) |
+constexpr Alarm operator|(Alarm lhs, Alarm rhs) noexcept {
+  return static_cast<Alarm>(static_cast<std::uint8_t>(lhs) |
                             static_cast<std::uint8_t>(rhs));
 };
 
-constexpr alarm &operator|=(alarm &lhs, alarm rhs) noexcept {
+constexpr Alarm &operator|=(Alarm &lhs, Alarm rhs) noexcept {
   lhs = (lhs | rhs);
   return lhs;
 };
 
 /**
  * \brief alarmEntry to store/flag things
- * \note needs an ID (tmId), cause (alarm), value (tm sample), timestamp
+ * \note needs an ID (tmId), cause (Alarm), value (tm sample), timestamp
  * (tmsample)
  */
 struct alarmEntry {
   TelemetryIds id{TelemetryIds ::MAX};
-  alarm cause{alarm::empty};
+  Alarm cause{Alarm::empty};
   tmSample sample{};
 };
