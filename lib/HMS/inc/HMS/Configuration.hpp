@@ -8,7 +8,7 @@
 #include <array>
 #include <atomic>
 #include <chrono>
-#include <string>
+#include <string_view>
 
 /// CMAKE INCLUDES
 // #include "Lib1/version.h"
@@ -22,10 +22,18 @@
 
 /// CODE
 
+/**
+ * \brief sensorConfiguration
+ * just a simple struct to hold a configuration
+ * \note use stringview so this can be a constexpr at compile time
+ * string_view.data() is nullterminated
+ * ideally we configure our sensors/system on the ground and flesh it out fully
+ * during design/dev
+ */
 struct sensorConfiguration {
   // For Logging/printouts
-  std::string name{};
-  std::string units{};
+  std::string_view name{};
+  std::string_view units{};
 
   std::size_t samplingPeriod_ticks{0};
 
@@ -38,6 +46,12 @@ struct sensorConfiguration {
   std::size_t numberOfRollingAverageSamples{0};
 };
 
+/**
+ * \brief healthMonitorConfiguration
+ * A struct to instruct health monitoring how to monitor
+ * \note isCOnfigurationRealistic exists to ensure that limits are set for the
+ * indicated HMS configuration, the criteria for what is valid could change
+ */
 struct healthMonitorConfiguration {
   static inline constexpr std::size_t requiredNumberofChannels{3};
 
