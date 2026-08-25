@@ -88,7 +88,7 @@ else()
     PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/inc/${LIB_NAME}/version.h" ${inc}/FDIR.hpp
     PRIVATE src/FDIR.cpp
   )
-  target_link_libraries(${LIB_NAME} PUBLIC HMS)
+  target_link_libraries(${LIB_NAME} PUBLIC HMS RateDamper Databases)
 
   target_include_directories(${LIB_NAME} PUBLIC ${PROJECT_BINARY_DIR}/inc/
                                                 ${CMAKE_CURRENT_SOURCE_DIR}/inc)
