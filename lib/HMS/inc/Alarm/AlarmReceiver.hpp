@@ -12,7 +12,7 @@
 // #include "HMS/version.h"
 
 /// USER INCLUDES
-#include "HMS/Alarm.hpp"
+#include "Alarm/Alarm.hpp"
 
 /// NAMESPACE
 
@@ -24,7 +24,7 @@
  */
 class AlarmReceiver {
 public:
-  virtual void raiseAlarm(const Alarm &rhs) noexcept = 0;
+  virtual void raiseAlarm(const alarmEntry &rhs) noexcept = 0;
   /**
    * \brief Construct a new AlarmReceiver object
    *
