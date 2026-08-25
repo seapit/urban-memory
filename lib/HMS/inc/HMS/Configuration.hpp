@@ -5,6 +5,7 @@
 
 #pragma once
 /// INCLUDES
+#include "Telemetry/Telemetry.hpp"
 #include <array>
 #include <atomic>
 #include <chrono>
@@ -28,9 +29,14 @@
  * \note use stringview so this can be a constexpr at compile time
  * string_view.data() is nullterminated
  * ideally we configure our sensors/system on the ground and flesh it out fully
- * during design/dev
+ * during design/dev.
+ * \note telemetries that have the same error criteria should be placed in the
+ * same channel configuration
+ * \todo ensure that the demo generates 6 Tm (3/2/1 for each channel)
  */
-struct sensorConfiguration {
+struct channelConfiguration {
+  static constexpr std::size_t maximumNumberOfIDs{3};
+
   // For Logging/printouts
   std::string_view name{};
   std::string_view units{};
@@ -41,6 +47,9 @@ struct sensorConfiguration {
   double lowLimit{0.0};
   double highLimit{0.0};
   double maxAbsoluteRateOfChange_UnitHz{0.0};
+
+  std::array<TelemetryIds, maximumNumberOfIDs> telemetryToMonitor{
+      TelemetryIds::MAX};
 
   // placeholder
   std::size_t numberOfRollingAverageSamples{0};
@@ -55,7 +64,7 @@ struct sensorConfiguration {
 struct healthMonitorConfiguration {
   static inline constexpr std::size_t requiredNumberofChannels{3};
 
-  std::array<sensorConfiguration, requiredNumberofChannels> sensorConfigs;
+  std::array<channelConfiguration, requiredNumberofChannels> sensorConfigs;
 
   // opportunity to show I know how to do single returns per function
   constexpr bool isConfigurationRealistic() const noexcept {
