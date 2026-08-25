@@ -6,6 +6,7 @@
 #pragma once
 /// INCLUDES
 #include <array>
+#include <cstddef>
 
 /// CMAKE INCLUDES
 // #include "HMS/version.h"
@@ -31,7 +32,7 @@ public:
    * \brief Construct a new HealthMonitor object
    *
    */
-  HealthMonitor(healthMonitorConfiguration &rhsConfiguration,
+  HealthMonitor(const healthMonitorConfiguration &rhsConfiguration,
                 const CriticalTelemetryDB &rhsDB, AlarmReceiver &rhsAlarmer)
       : stored_Configuration(rhsConfiguration), telemetryDatabase(rhsDB),
         alarmDestination(rhsAlarmer) {};
@@ -56,7 +57,7 @@ public:
   // protected:
 
 private:
-  void executionLoop(const std::size_t rhsIndex) const noexcept;
+  void executionLoop(const std::size_t rhsIndex) noexcept;
 
   healthMonitorConfiguration stored_Configuration;
   std::array<sensorState, sizecast(TelemetryIds::MAX)> sensorStates;
