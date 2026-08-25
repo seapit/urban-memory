@@ -5,8 +5,7 @@
 
 #pragma once
 /// INCLUDES
-// #include <csignal>
-// #include <cstdio>
+#include <cstdint>
 
 /// CMAKE INCLUDES
 // #include "FDIR/version.h"
@@ -24,6 +23,8 @@
  * \class FDIR
  */
 class FDIR : public AlarmReceiver {
+  static inline constexpr std::size_t alarmBufferSize{4};
+
 public:
   /**
    * \brief Construct a new FDIR object
@@ -31,7 +32,9 @@ public:
    */
   FDIR();
 
-  void alarm(Alarm rhsInput) noexcept override {}
+  void alarm(Alarm rhsInput) noexcept override;
+
+  void executionLoop() noexcept;
 
   // protected:
 
