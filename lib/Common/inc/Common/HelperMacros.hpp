@@ -4,6 +4,7 @@
  */
 #pragma once
 /// INCLUDES
+#include <cstdint>
 #include <string_view>
 
 /// USER INCLUDES
@@ -78,3 +79,5 @@
 
 // I am lazy
 #define aRetVal auto aReturn
+
+#define sizecast(val) static_cast<std::size_t>(val)
