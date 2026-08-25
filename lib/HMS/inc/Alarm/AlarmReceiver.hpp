@@ -29,7 +29,7 @@ public:
    * \brief Construct a new AlarmReceiver object
    *
    */
-  virtual ~AlarmReceiver();
+  virtual ~AlarmReceiver() = default;
 
   // protected:
 
