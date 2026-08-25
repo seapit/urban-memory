@@ -10,7 +10,7 @@
 
 /// USER INCLUDES
 #include "Common/HelperMacros.hpp"
-#include "PingPongBuffer/PingPongBuffer.hpp"
+#include "Databases/PingPongBuffer.hpp"
 #include "Telemetry/Telemetry.hpp"
 
 /// NAMESPACE

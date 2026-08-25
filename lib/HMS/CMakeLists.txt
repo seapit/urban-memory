@@ -88,11 +88,13 @@ else()
     PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/inc/${LIB_NAME}/version.h"
     PUBLIC ${inc}/Configuration.hpp
     PUBLIC ${inc}/SensorState.hpp
-    PUBLIC ${inc}/HealthMonitor.hpp
-    PRIVATE  src/HealthMonitor.cpp
+    PUBLIC inc/Telemetry/Telemetry.hpp
+    PUBLIC inc/Alarm/Alarm.hpp
+    PUBLIC inc/Alarm/AlarmReceiver.hpp
+    PRIVATE src/HealthMonitor.cpp
   )
 
-  target_link_libraries(${LIB_NAME} PUBLIC Common PingPongBuffer Databases Telemetry)
+  target_link_libraries(${LIB_NAME} PUBLIC Common Databases)
 
   target_include_directories(${LIB_NAME} PUBLIC ${PROJECT_BINARY_DIR}/inc/
                                                 ${CMAKE_CURRENT_SOURCE_DIR}/inc)

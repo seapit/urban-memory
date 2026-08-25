@@ -1,6 +1,0 @@
-# The version number of this project.
-set( project_version 0.0.1.0 )
-# The description of this project.
-set( project_description "I'm just learning" )
-# The homepage of this project.
-set( project_homepage "https://github.com/seapit/urban-memory.git" )
