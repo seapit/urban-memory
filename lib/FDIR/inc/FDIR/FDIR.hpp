@@ -46,7 +46,8 @@ public:
   // only one alarm can be actioned at a time, we are simulating an RTOS
   // tasks are bounded and shouldn't slip
   // decide which alarms are ok, THEN action the first one we can.
-  void step(std::chrono::milliseconds rhsElapsedTime) noexcept {
+  void
+  step([[maybe_unused]] std::chrono::milliseconds rhsElapsedTime) noexcept {
     alarmEntry aAlarm;
     // loop will keep executing as long as there are things in the queue
     // we should ensure these are valid before we address them
@@ -81,8 +82,8 @@ private:
           break;
         }
       }
-      return aReturn;
     }
+    return aReturn;
   }
 
   bool isValid(const alarmEntry &rhsEntry) {
@@ -96,11 +97,11 @@ private:
     return aReturn;
   }
 
-  bool actionableAlarm{false};
-  bool actionedAlarm{false};
-  bool continueActioning{false};
+  [[maybe_unused]] bool actionableAlarm{false};
+  [[maybe_unused]] bool actionedAlarm{false};
+  [[maybe_unused]] bool continueActioning{false};
 
   fdirConfiguration faultConfiguration;
-  const CriticalTelemetryDB &telemetryDB;
+  [[maybe_unused]] const CriticalTelemetryDB &telemetryDB;
   AlarmQueue<16> alarmBuffer;
 };
