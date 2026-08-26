@@ -6,6 +6,7 @@
 #pragma once
 /// INCLUDES
 #include <array>
+#include <chrono>
 #include <cstddef>
 
 /// CMAKE INCLUDES

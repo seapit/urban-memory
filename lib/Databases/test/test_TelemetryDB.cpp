@@ -3,13 +3,7 @@
 #include <memory>
 
 #include "Databases/TelemetryDB.hpp"
-
-// copy to not add a circular dependency
-struct tmSample {
-  std::size_t samplesStored{0};
-  double readValue{0.0};
-  std::size_t timestamp{0};
-};
+#include "Telemetry/Telemetry.hpp"
 
 // Define a test fixture class
 class CriticalTelemetryDBTest : public ::testing::Test { // NOSONAR
@@ -28,14 +22,12 @@ protected:
   void SetUp() override {
     // Code here will be called immediately after the constructor (right before
     // each test).
-    testBuffer = std::make_unique<PingPongBuffer<tmSample>>();
+    testDb = std::make_unique<CriticalTelemetryDB>();
 
-    aSimpleTelemetry.samplesStored = 0;
     aSimpleTelemetry.readValue = 0;
     aSimpleTelemetry.timestamp = 0;
   }
   void incrementTM() {
-    aSimpleTelemetry.samplesStored += 1;
     aSimpleTelemetry.readValue += 1;
     aSimpleTelemetry.timestamp += 1;
   }
@@ -46,69 +38,48 @@ protected:
   }
   tmSample aSimpleTelemetry;
 
-  std::unique_ptr<PingPongBuffer<tmSample>> testBuffer;
+  std::unique_ptr<CriticalTelemetryDB> testDb;
 };
 
 // Test cases using the test fixture
 // I usually use this test to ensure I can link
 TEST_F(CriticalTelemetryDBTest, InitProbably) {}
 
-TEST_F(CriticalTelemetryDBTest, IncrementHelperTest) {
+TEST_F(CriticalTelemetryDBTest, inputChecking) {
+  constexpr std::size_t aSize = (sizecast(TelemetryIds::MAX) + 1);
 
-  EXPECT_EQ(aSimpleTelemetry.samplesStored, 0);
-  EXPECT_EQ(aSimpleTelemetry.readValue, 0);
-  EXPECT_EQ(aSimpleTelemetry.timestamp, 0);
+  // will just use index = id
+  std::array<tmSample, aSize> associatedTelemetries;
 
-  incrementTM();
-  EXPECT_EQ(aSimpleTelemetry.samplesStored, 1);
-  EXPECT_EQ(aSimpleTelemetry.readValue, 1);
-  EXPECT_EQ(aSimpleTelemetry.timestamp, 1);
+  // setup values for TM
+  for (std::size_t i = 0; i < aSize; ++i) {
+    std::cout << TelemetryIdsStrings[i] << std::endl;
+    associatedTelemetries[i].readValue = static_cast<double>(i);
+    associatedTelemetries[i].timestamp = (i);
+
+    // insert the telemetry into the db
+    EXPECT_NO_FATAL_FAILURE(testDb->publish(static_cast<TelemetryIds>(i),
+                                            associatedTelemetries[i]));
+  }
+
+  std::cout << "Test1" << std::endl;
+  for (std::size_t i = 0; i < aSize; ++i) {
+    const auto &aInputTelemetry = associatedTelemetries[i];
+    const auto &aReturnTelemetry =
+        testDb->getLatest(static_cast<TelemetryIds>(i));
+
+    // test we didn't receive the same object accidentally and ensure we
+    // returned by value
+    EXPECT_NE(&aInputTelemetry, &aReturnTelemetry);
+
+    if (i < (aSize - 1)) {
+      // Ensure we received the same values input as we did output
+      EXPECT_EQ(aInputTelemetry.readValue, aReturnTelemetry.readValue);
+      EXPECT_EQ(aInputTelemetry.readValue, aReturnTelemetry.readValue);
+    } else {
+      // Ensure we received an empty telemetry one
+      EXPECT_NE(aInputTelemetry.readValue, aReturnTelemetry.readValue);
+      EXPECT_NE(aInputTelemetry.readValue, aReturnTelemetry.readValue);
+    }
+  }
 }
-
-// Thank god I did this test, implemented a bug
-// used
-TEST_F(CriticalTelemetryDBTest, push) {
-  const auto &aSample = testBuffer->getLatest();
-
-  EXPECT_EQ(aSample.samplesStored, aSimpleTelemetry.samplesStored);
-  EXPECT_EQ(aSample.readValue, aSimpleTelemetry.readValue);
-  EXPECT_EQ(aSample.timestamp, aSimpleTelemetry.timestamp);
-
-  incrementTM();
-
-  testBuffer->update(aSimpleTelemetry);
-
-  const auto &aSecondSample = testBuffer->getLatest();
-
-  EXPECT_EQ(aSecondSample.samplesStored, aSimpleTelemetry.samplesStored);
-  EXPECT_EQ(aSecondSample.readValue, aSimpleTelemetry.readValue);
-  EXPECT_EQ(aSecondSample.timestamp, aSimpleTelemetry.timestamp);
-  EXPECT_NE(aSample.samplesStored, aSimpleTelemetry.samplesStored);
-  EXPECT_NE(aSample.readValue, aSimpleTelemetry.readValue);
-  EXPECT_NE(aSample.timestamp, aSimpleTelemetry.timestamp);
-
-  incrementTM();
-
-  testBuffer->update(aSimpleTelemetry);
-
-  auto aSThirdSample = testBuffer->getLatest();
-  const auto &aExtraSample = testBuffer->getLatest();
-
-  EXPECT_EQ(aSThirdSample.samplesStored, aSimpleTelemetry.samplesStored);
-  EXPECT_EQ(aSThirdSample.readValue, aSimpleTelemetry.readValue);
-  EXPECT_EQ(aSThirdSample.timestamp, aSimpleTelemetry.timestamp);
-  EXPECT_EQ(aSample.samplesStored, aSimpleTelemetry.samplesStored);
-  EXPECT_EQ(aSample.readValue, aSimpleTelemetry.readValue);
-  EXPECT_EQ(aSample.timestamp, aSimpleTelemetry.timestamp);
-  EXPECT_NE(aSecondSample.samplesStored, aSimpleTelemetry.samplesStored);
-  EXPECT_NE(aSecondSample.readValue, aSimpleTelemetry.readValue);
-  EXPECT_NE(aSecondSample.timestamp, aSimpleTelemetry.timestamp);
-
-  // const ref vs auto
-  EXPECT_NE(&aSample, &aSThirdSample);
-
-  EXPECT_NE(&aSecondSample, &aSThirdSample);
-
-  // test const ref to the same const ref
-  EXPECT_EQ(&aSample, &aExtraSample);
-};

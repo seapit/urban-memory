@@ -20,15 +20,20 @@
 /// CODE
 
 // this is a helper function I didn't create (from Stack Overflow)
-// it works well for my home projects
-// this exists to create an enum class automatically and a string_View I can use
-// for reflection
-// there are libraries that do this better.
+// it works well for my home projects this exists to create an enum class
+// automatically and a string_View I can use for reflection there are libraries
+// that do this better.
 ENUM_AND_STRING(TelemetryIds, (RateController1_x_AngularRate), (Temperature_1),
                 (RateController2_x_AngularRate), (Temperature_2),
                 (RateController3_x_AngularRate), (Voltage))
 
 // What's stored in the database
+/**
+ * \brief tmSample
+ * a rudimentary telemetry Sample
+ * \param readvalue - double - value
+ * \param timestamp - size_t - number of ticks
+ */
 struct tmSample {
   double readValue{0.0};
   std::size_t timestamp{0};
