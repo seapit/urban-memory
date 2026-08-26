@@ -27,11 +27,10 @@ class CriticalTelemetryDB {
 public:
   /**
    * \brief Construct a new TelemetryDB object
-   *
    */
   inline void publish(TelemetryIds rhsId, const tmSample &rhsSample) {
     // guard clause to ensure safety of what we input
-    if (rhsId != TelemetryIds::MAX) {
+    if (rhsId < TelemetryIds::MAX) {
       criticalTMEntries[sizecast(rhsId)].update(rhsSample);
     }
   }

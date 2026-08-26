@@ -53,7 +53,6 @@ TEST_F(CriticalTelemetryDBTest, inputChecking) {
 
   // setup values for TM
   for (std::size_t i = 0; i < aSize; ++i) {
-    std::cout << TelemetryIdsStrings[i] << std::endl;
     associatedTelemetries[i].readValue = static_cast<double>(i);
     associatedTelemetries[i].timestamp = (i);
 
@@ -62,11 +61,13 @@ TEST_F(CriticalTelemetryDBTest, inputChecking) {
                                             associatedTelemetries[i]));
   }
 
-  std::cout << "Test1" << std::endl;
   for (std::size_t i = 0; i < aSize; ++i) {
+    std::cout << TelemetryIdsStrings[i] << std::endl;
+    TelemetryIds aId = static_cast<TelemetryIds>(i);
     const auto &aInputTelemetry = associatedTelemetries[i];
-    const auto &aReturnTelemetry =
-        testDb->getLatest(static_cast<TelemetryIds>(i));
+    tmSample aReturnTelemetry;
+
+    EXPECT_NO_FATAL_FAILURE(aReturnTelemetry = testDb->getLatest(aId));
 
     // test we didn't receive the same object accidentally and ensure we
     // returned by value

@@ -3,13 +3,7 @@
 #include <memory>
 
 #include "Databases/PingPongBuffer.hpp"
-
-// copy to not add a circular dependency
-struct tmSample {
-  std::size_t samplesStored{0};
-  double readValue{0.0};
-  std::size_t timestamp{0};
-};
+#include "Telemetry/Telemetry.hpp"
 
 // Define a test fixture class
 class PingPongBufferTest : public ::testing::Test { // NOSONAR
@@ -30,12 +24,10 @@ protected:
     // each test).
     testBuffer = std::make_unique<PingPongBuffer<tmSample>>();
 
-    aSimpleTelemetry.samplesStored = 0;
     aSimpleTelemetry.readValue = 0;
     aSimpleTelemetry.timestamp = 0;
   }
   void incrementTM() {
-    aSimpleTelemetry.samplesStored += 1;
     aSimpleTelemetry.readValue += 1;
     aSimpleTelemetry.timestamp += 1;
   }
@@ -55,12 +47,10 @@ TEST_F(PingPongBufferTest, InitProbably) {}
 
 TEST_F(PingPongBufferTest, IncrementHelperTest) {
 
-  EXPECT_EQ(aSimpleTelemetry.samplesStored, 0);
   EXPECT_EQ(aSimpleTelemetry.readValue, 0);
   EXPECT_EQ(aSimpleTelemetry.timestamp, 0);
 
   incrementTM();
-  EXPECT_EQ(aSimpleTelemetry.samplesStored, 1);
   EXPECT_EQ(aSimpleTelemetry.readValue, 1);
   EXPECT_EQ(aSimpleTelemetry.timestamp, 1);
 }
@@ -70,7 +60,6 @@ TEST_F(PingPongBufferTest, IncrementHelperTest) {
 TEST_F(PingPongBufferTest, push) {
   const auto &aSample = testBuffer->getLatest();
 
-  EXPECT_EQ(aSample.samplesStored, aSimpleTelemetry.samplesStored);
   EXPECT_EQ(aSample.readValue, aSimpleTelemetry.readValue);
   EXPECT_EQ(aSample.timestamp, aSimpleTelemetry.timestamp);
 
@@ -80,10 +69,8 @@ TEST_F(PingPongBufferTest, push) {
 
   const auto &aSecondSample = testBuffer->getLatest();
 
-  EXPECT_EQ(aSecondSample.samplesStored, aSimpleTelemetry.samplesStored);
   EXPECT_EQ(aSecondSample.readValue, aSimpleTelemetry.readValue);
   EXPECT_EQ(aSecondSample.timestamp, aSimpleTelemetry.timestamp);
-  EXPECT_NE(aSample.samplesStored, aSimpleTelemetry.samplesStored);
   EXPECT_NE(aSample.readValue, aSimpleTelemetry.readValue);
   EXPECT_NE(aSample.timestamp, aSimpleTelemetry.timestamp);
 
@@ -94,15 +81,12 @@ TEST_F(PingPongBufferTest, push) {
   auto aSThirdSample = testBuffer->getLatest();
   const auto &aExtraSample = testBuffer->getLatest();
 
-  EXPECT_EQ(aSThirdSample.samplesStored, aSimpleTelemetry.samplesStored);
   EXPECT_EQ(aSThirdSample.readValue, aSimpleTelemetry.readValue);
   EXPECT_EQ(aSThirdSample.timestamp, aSimpleTelemetry.timestamp);
 
-  EXPECT_NE(aSample.samplesStored, aSimpleTelemetry.samplesStored);
   EXPECT_NE(aSample.readValue, aSimpleTelemetry.readValue);
   EXPECT_NE(aSample.timestamp, aSimpleTelemetry.timestamp);
 
-  EXPECT_NE(aSecondSample.samplesStored, aSimpleTelemetry.samplesStored);
   EXPECT_NE(aSecondSample.readValue, aSimpleTelemetry.readValue);
   EXPECT_NE(aSecondSample.timestamp, aSimpleTelemetry.timestamp);
 
