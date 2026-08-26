@@ -24,7 +24,8 @@
  */
 class AlarmReceiver {
 public:
-  virtual void raiseAlarm(const alarmEntry &rhs) noexcept = 0;
+  // Respect my own notes, don't fail silently
+  virtual bool raiseAlarm(const alarmEntry &rhs) noexcept = 0;
   /**
    * \brief Construct a new AlarmReceiver object
    *
