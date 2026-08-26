@@ -22,10 +22,10 @@
 double RateDamper::control(double rhsAngularRate_rad_sec) noexcept {
   // Can a reaction wheel exceed it's maximum angular rate?
   // Does it catastrophically fail?
-  double aBoundedInputRate =
+  [[maybe_unused]] double aBoundedInputRate =
       boundedAngularRateValidation(rhsAngularRate_rad_sec);
 
-  aRetVal = damperConfig.dampingGain_N_m_s_per_rad * aBoundedInputRate;
+  aRetVal = damperConfig.dampingGain_N_m_s_per_rad * rhsAngularRate_rad_sec;
 
   return boundedTorqueValidation(aReturn);
 };

@@ -1,4 +1,6 @@
+#include "FDIR/FDIR.hpp"
 #include <gtest/gtest.h>
+
 // Define a test fixture class
 class FDIRTest : public ::testing::Test { // NOSONAR
 protected:
@@ -22,7 +24,13 @@ protected:
     // Code here will be called immediately after each test (right
     // before the destructor).
   }
+
+  fdirConfiguration aCfg;
+  CriticalTelemetryDB aDB;
+  FDIR aFDIR{aCfg, aDB};
 };
 
 // Test cases using the test fixture
 TEST_F(FDIRTest, InitProbably) {}
+
+TEST_F(FDIRTest, isValid) {}
