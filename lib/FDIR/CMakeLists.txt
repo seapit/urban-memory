@@ -85,7 +85,10 @@ else()
 
   target_sources(
     ${LIB_NAME}
-    PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/inc/${LIB_NAME}/version.h" ${inc}/FDIR.hpp
+    PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/inc/${LIB_NAME}/version.h"
+    ${inc}/FDIR.hpp
+    ${inc}/Configuration.hpp
+    ${inc}/AlarmQueue.hpp
     PRIVATE src/FDIR.cpp
   )
   target_link_libraries(${LIB_NAME} PUBLIC HMS RateDamper Databases Telemetry)
