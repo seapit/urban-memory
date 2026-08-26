@@ -74,7 +74,7 @@ private:
   }
 
   bool isEligible(TelemetryIds lhsId) {
-    aRetVal{true};
+    aRetVal{false};
     for (const auto &[workableId, _] : faultConfiguration.eligibleTelemetries) {
       if (lhsId == workableId) {
         {
