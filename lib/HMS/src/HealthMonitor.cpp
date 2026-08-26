@@ -15,6 +15,7 @@
 #include "Alarm/Alarm.hpp"
 #include "Common/HelperMacros.hpp"
 #include "HMS/Configuration.hpp"
+#include "Telemetry/Telemetry.hpp"
 
 #include <cstddef>
 
@@ -76,6 +77,12 @@ void HealthMonitor::executionLoop(const std::size_t rhsIndex) noexcept {
 
   // for each channel's associated telemetry
   for (const auto &associatedTM : aChannelCfg.telemetryToMonitor) {
+
+    // if the associated telemetry is not configured for this channel
+    if (associatedTM == TelemetryIds::MAX) {
+      continue;
+    }
+
     // get the appropriate sensor
     auto &aSensor = sensorStates[sizecast(associatedTM)];
 
@@ -90,6 +97,36 @@ void HealthMonitor::executionLoop(const std::size_t rhsIndex) noexcept {
       continue;
     }
 
+    // a stale sensor is one that has missed a deadline to update
+    // so aTelemetry.timestamp = aSensor.lastTMGenerationTime_ticks
+    if (aTelemetry.timestamp == aSensor.lastTMGenerationtime_ticks) {
+      aSensor.numberOfStale += 1;
+
+      // flag on the rising edge
+      if ((aSensor.numberOfStale >= aChannelCfg.numberPermittedStaleUpdates) &&
+          (aSensor.staleValues == false)) {
+        // set sensor to have stale values
+        aSensor.staleValues = true;
+
+        // create alarm
+        alarmEntry alarmToRaise{
+            .id = associatedTM, .cause = Alarm::stale, .sample = aTelemetry};
+        // raise it
+        // i dont have logic to raise this error if the raising of alarm doesn't
+        // work
+        (void)alarmDestination.raiseAlarm(alarmToRaise);
+      }
+      continue;
+    }
+    // if we got here we have not executed the stale 'continue'
+    aSensor.numberOfStale = 0;
+    // reset stale fflag amd alarm
+    if (aSensor.staleValues) {
+      aSensor.staleValues = false;
+      alarmEntry alarmToRaise{
+          .id = associatedTM, .cause = Alarm::empty, .sample = aTelemetry};
+      (void)alarmDestination.raiseAlarm(alarmToRaise);
+    }
     // get elapsed time
     evaluateRateOfChange(aSensor, aTelemetry);
 
