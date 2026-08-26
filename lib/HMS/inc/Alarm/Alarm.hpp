@@ -14,8 +14,15 @@
 #include "Common/HelperMacros.hpp"
 #include "Telemetry/Telemetry.hpp"
 
-ENUM_AND_STRING(Alarm, (empty, 0), (too_low, 1), (too_high, 1 << 1),
-                (rateofchange, 1 << 2), (stale, 1 << 3))
+// fixed after seeing issue in unit test, ENUM_AND_STRING isn't useful for
+// bitshifted flags
+enum class Alarm {
+  empty = 0,
+  too_low = 1,
+  too_high = 1 << 1,
+  rateofchange = 1 << 2,
+  stale = 1 << 3
+};
 
 /// NAMESPACE
 
