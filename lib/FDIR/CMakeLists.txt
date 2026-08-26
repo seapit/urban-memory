@@ -91,7 +91,7 @@ else()
     ${inc}/AlarmQueue.hpp
     PRIVATE src/FDIR.cpp
   )
-  target_link_libraries(${LIB_NAME} PUBLIC HMS RateDamper Databases Telemetry)
+  target_link_libraries(${LIB_NAME} PUBLIC HMS RateDamper Databases)
 
   target_include_directories(${LIB_NAME} PUBLIC ${PROJECT_BINARY_DIR}/inc/
                                                 ${CMAKE_CURRENT_SOURCE_DIR}/inc)

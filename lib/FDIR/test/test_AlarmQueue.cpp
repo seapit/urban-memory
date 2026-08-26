@@ -22,7 +22,36 @@ protected:
   void SetUp() override {
     // Code here will be called immediately after the constructor (right before
     // each test).
-    aTestBuf = std::make_unique<AlarmQueue<4>>();
+    aTestBuf = std::make_unique<AlarmQueue<queueSize>>();
+  }
+
+  std::string_view getString(Alarm rhs) {
+    std::string_view aReturnStringView{};
+
+    switch (rhs) {
+    case (Alarm::empty):
+      aReturnStringView = "empty ";
+      break;
+    case Alarm::too_low:
+      aReturnStringView = " too_low";
+      break;
+    case Alarm::too_high:
+      aReturnStringView = " too_high ";
+      break;
+
+    case Alarm::rateofchange:
+      aReturnStringView = " rateofchange ";
+      break;
+    case Alarm::stale:
+      aReturnStringView = " stale";
+      break;
+    case Alarm::MAX:
+      aReturnStringView = " MAX";
+      break;
+    default:
+      break;
+    }
+    return aReturnStringView;
   }
 
   void TearDown() override {
@@ -44,38 +73,85 @@ TEST_F(AlarmQueueTest, pushAlarm) {
       TelemetryIds::Voltage, TelemetryIds::MAX;
 
   Alarm aAlarm = too_low;
+  bool toValidate{false};
 
-  alarmEntry anAlarm{.id = RateController1_x_AngularRate,
-                     .cause = aAlarm,
-                     .sample{.readValue = 0, .timestamp = 0}};
+  alarmEntry aAlarmEntry{.id = RateController1_x_AngularRate,
+                         .cause = aAlarm,
+                         .sample{.readValue = 0, .timestamp = 0}};
 
-  for (std::size_t i = 0; i <= queueSize, ++i) {
+  for (std::size_t i = 0; i < queueSize + 4; ++i) {
     // eexpect push to succeed/not crash
-    EXPECT_NO_FATAL_FAILURE(aTestBuf->try_push(anAlarm));
+    std::cout << getString(aAlarm) << std::endl;
+    EXPECT_NO_FATAL_FAILURE(toValidate = aTestBuf->try_push(aAlarmEntry));
+    if (i < queueSize)
+      EXPECT_EQ(toValidate, true);
+    else {
+      EXPECT_EQ(toValidate, false);
+    }
 
     // update alarm cause for next run
     switch (i) {
     case 0:
-      aAlarm = too_low;
-      break;
-    case 1:
       aAlarm = too_high;
       break;
-    case 2:
+    case 1:
       aAlarm = rateofchange;
       break;
-    case 3:
+    case 2:
       aAlarm = stale;
       break;
-    case 4:
+    case 3:
       aAlarm = too_low;
+      break;
+    case 4:
+      aAlarm = too_high;
+      break;
+    default:
       break;
     }
 
     // set the Alarm Entry
-    anAlarm.cause = aAlarm;
+    aAlarmEntry.cause = aAlarm;
   }
 
+  std::cout << std::endl;
+  std::cout << std::endl;
+  aAlarm = too_low;
+
   EXPECT_EQ(aTestBuf->getEntries(), queueSize);
-  EXPECT_EQ(aTestBuf->getOverFlows(), 1);
+  EXPECT_EQ(aTestBuf->getOverFlows(), 4);
+
+  for (std::size_t i = 0; i <= queueSize + 4; ++i) {
+    // eexpect push to succeed/not crash
+    // std::cout << getString(aAlarm) << std::endl;
+
+    EXPECT_NO_FATAL_FAILURE(toValidate = aTestBuf->try_pop(aAlarmEntry));
+
+    if (i < queueSize)
+      EXPECT_EQ(toValidate, true);
+    else
+      EXPECT_EQ(toValidate, false);
+
+    EXPECT_EQ(aAlarmEntry.cause, aAlarm);
+
+    switch (i) {
+    case 0:
+      aAlarm = too_high;
+      break;
+    case 1:
+      aAlarm = rateofchange;
+      break;
+    case 2:
+      aAlarm = stale;
+      break;
+    case 3:
+      aAlarm = too_low;
+      break;
+    default:
+      break;
+    }
+
+    // set the Alarm Entry
+    aAlarmEntry.cause = aAlarm;
+  }
 }

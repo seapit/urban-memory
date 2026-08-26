@@ -55,7 +55,7 @@ else()
   add_executable(${LIB_NAME}_Test)
   add_test(NAME ${LIB_NAME}_Test COMMAND ${LIB_NAME}_Test)
 
-  target_sources(${LIB_NAME}_Test PRIVATE test_FDIR.cpp)
+  target_sources(${LIB_NAME}_Test PRIVATE test_FDIR.cpp test_AlarmQueue.cpp)
 
   target_include_directories(${LIB_NAME}_Test
                              PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../inc)
