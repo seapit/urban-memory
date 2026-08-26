@@ -35,9 +35,15 @@ public:
   void update(const T &rhsSensorInput) noexcept {
     const auto currentIndex = getNextIndex();
     samples[currentIndex] = std::move(rhsSensorInput);
+
+    // update index so the next read will always read the latest stored
+    // value
     ping_pong.store(currentIndex);
   }
 
+  // returning a reference here wouldn't be good as it could change mid-write,
+  // we want consumers of these 'T's to be able to see the genuine last value
+  // they should've
   T getLatest() const noexcept { return samples[ping_pong.load()]; }
 
 private:
@@ -47,6 +53,10 @@ private:
   // to use masking
   inline std::size_t getNextIndex() { return (1 ^ ping_pong.load()); }
 
-  std::array<T, numberOfBuffers> samples;
+  // default initialize the array so any consumer will get valid
+  // zero-initialized item
+  std::array<T, numberOfBuffers> samples{};
+
+  // this is our index
   std::atomic<std::size_t> ping_pong{0};
 };

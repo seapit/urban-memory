@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 #include <memory>
 
-#include "Databases/PingPongBuffer.hpp"
+#include "Databases/TelemetryDB.hpp"
 
 // copy to not add a circular dependency
 struct tmSample {
@@ -12,16 +12,16 @@ struct tmSample {
 };
 
 // Define a test fixture class
-class PingPongBufferTest : public ::testing::Test { // NOSONAR
+class CriticalTelemetryDBTest : public ::testing::Test { // NOSONAR
 protected:
   // You can remove any or all of the following functions if their bodies would
   // be empty.
 
-  PingPongBufferTest() { // NOSONAR
+  CriticalTelemetryDBTest() { // NOSONAR
     // You can do set-up work for each test here.
   }
 
-  ~PingPongBufferTest() override { // NOSONAR
+  ~CriticalTelemetryDBTest() override { // NOSONAR
     // You can do clean-up work that doesn't throw exceptions here.
   }
 
@@ -51,9 +51,9 @@ protected:
 
 // Test cases using the test fixture
 // I usually use this test to ensure I can link
-TEST_F(PingPongBufferTest, InitProbably) {}
+TEST_F(CriticalTelemetryDBTest, InitProbably) {}
 
-TEST_F(PingPongBufferTest, IncrementHelperTest) {
+TEST_F(CriticalTelemetryDBTest, IncrementHelperTest) {
 
   EXPECT_EQ(aSimpleTelemetry.samplesStored, 0);
   EXPECT_EQ(aSimpleTelemetry.readValue, 0);
@@ -67,7 +67,7 @@ TEST_F(PingPongBufferTest, IncrementHelperTest) {
 
 // Thank god I did this test, implemented a bug
 // used
-TEST_F(PingPongBufferTest, push) {
+TEST_F(CriticalTelemetryDBTest, push) {
   const auto &aSample = testBuffer->getLatest();
 
   EXPECT_EQ(aSample.samplesStored, aSimpleTelemetry.samplesStored);
@@ -97,11 +97,9 @@ TEST_F(PingPongBufferTest, push) {
   EXPECT_EQ(aSThirdSample.samplesStored, aSimpleTelemetry.samplesStored);
   EXPECT_EQ(aSThirdSample.readValue, aSimpleTelemetry.readValue);
   EXPECT_EQ(aSThirdSample.timestamp, aSimpleTelemetry.timestamp);
-
-  EXPECT_NE(aSample.samplesStored, aSimpleTelemetry.samplesStored);
-  EXPECT_NE(aSample.readValue, aSimpleTelemetry.readValue);
-  EXPECT_NE(aSample.timestamp, aSimpleTelemetry.timestamp);
-
+  EXPECT_EQ(aSample.samplesStored, aSimpleTelemetry.samplesStored);
+  EXPECT_EQ(aSample.readValue, aSimpleTelemetry.readValue);
+  EXPECT_EQ(aSample.timestamp, aSimpleTelemetry.timestamp);
   EXPECT_NE(aSecondSample.samplesStored, aSimpleTelemetry.samplesStored);
   EXPECT_NE(aSecondSample.readValue, aSimpleTelemetry.readValue);
   EXPECT_NE(aSecondSample.timestamp, aSimpleTelemetry.timestamp);
@@ -111,6 +109,6 @@ TEST_F(PingPongBufferTest, push) {
 
   EXPECT_NE(&aSecondSample, &aSThirdSample);
 
-  // test we get values by value not by ref
-  EXPECT_NE(&aSample, &aExtraSample);
+  // test const ref to the same const ref
+  EXPECT_EQ(&aSample, &aExtraSample);
 };

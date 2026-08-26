@@ -88,7 +88,7 @@ else()
     PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/inc/${LIB_NAME}/version.h" ${inc}/TelemetryDB.hpp ${inc}/PingPongBuffer.hpp
   )
 
-  target_link_libraries(${LIB_NAME} PRIVATE INTERFACE)
+  target_link_libraries(${LIB_NAME} INTERFACE Common HMS)
 
   target_include_directories(${LIB_NAME} INTERFACE ${PROJECT_BINARY_DIR}/inc/
                                                 ${CMAKE_CURRENT_SOURCE_DIR}/inc)
