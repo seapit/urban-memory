@@ -39,8 +39,8 @@ public:
        const CriticalTelemetryDB &rhsDatabase)
       : faultConfiguration(rhsConfiguration), telemetryDB(rhsDatabase) {};
 
-  void raiseAlarm(const alarmEntry &rhsInput) noexcept override {
-    alarmBuffer.try_push(rhsInput);
+  bool raiseAlarm(const alarmEntry &rhsInput) noexcept override {
+    return alarmBuffer.try_push(rhsInput);
   }
 
   // only one alarm can be actioned at a time, we are simulating an RTOS
