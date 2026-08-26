@@ -56,6 +56,6 @@ TEST_F(RateDamperTest, boundedTests) {
 
   EXPECT_EQ(aDamper.boundedAngularRateValidation(amaximumInputRate + 1),
             amaximumInputRate);
-  EXPECT_EQ(aDamper.boundedAngularRateValidation((0 - amaximumInputRate)),
-            amaximumInputRate);
+  EXPECT_EQ(aDamper.boundedAngularRateValidation((0 - amaximumInputRate - 1)),
+            0 - amaximumInputRate);
 }

@@ -33,6 +33,13 @@ double RateDamper::control(double rhsAngularRate_rad_sec) noexcept {
 double RateDamper::boundedTorqueValidation(double rhsInput) noexcept {
   aRetVal = std::clamp(rhsInput, (0 - damperConfig.outputTorque_Floor_N_m),
                        damperConfig.outputTorque_Floor_N_m);
+
+  // from CPPref, we must avoid NaNs so just check that it's infinite and then
+  // update accordingly
+  if (std::isfinite(rhsInput) == false) {
+    aReturn = 0.0;
+  }
+
   return aReturn;
 };
 
@@ -42,6 +49,13 @@ double RateDamper::boundedVoltageValidation(double rhsInput) noexcept {
       rhsInput,
       (damperConfig.nominalVoltage_V - damperConfig.nominalVoltageVariation_V),
       (damperConfig.nominalVoltage_V + damperConfig.nominalVoltageVariation_V));
+
+  // from CPPref, we must avoid NaNs so just check that it's infinite and then
+  // update accordingly
+  if (std::isfinite(rhsInput) == false) {
+    aReturn = 0.0;
+  }
+
   return aReturn;
 };
 
