@@ -5,14 +5,15 @@
 
 #pragma once
 /// INCLUDES
-#include "Alarm/Alarm.hpp"
 #include <array>
+#include <atomic>
 #include <cstddef>
 
 /// CMAKE INCLUDES
 // #include "FDIR/version.h"
 
 /// USER INCLUDES
+#include "Alarm/Alarm.hpp"
 
 /// NAMESPACE
 
@@ -46,7 +47,7 @@ public:
     }
     // we are not full and can input
     else {
-      auto index = (producerIndex & (Size - 1));
+      auto index = (producerIndex.fetch_add(1) & (Size - 1));
       buffer[index] = rhsAlarm;
       ++numberOfEntries;
       aReturn = true;
@@ -66,21 +67,24 @@ public:
   bool try_pop(alarmEntry &rhsAlarm) noexcept {
     bool aReturn{false};
     if (numberOfEntries > 0) {
-      auto index = (consumerIndex & (Size - 1));
+      auto index = (consumerIndex.fetch_add(1) & (Size - 1));
       rhsAlarm = buffer[index];
       numberOfEntries--;
       aReturn = true;
     }
     return aReturn;
   }
+  std::size_t getEntries() { return numberOfEntries; };
+
+  std::size_t getOverFlows() { return numberOfoverFlows; };
 
   // protected:
 
 private:
   std::array<alarmEntry, Size> buffer;
 
-  std::size_t producerIndex{0};
-  std::size_t consumerIndex{0};
+  std::atomic<std::size_t> producerIndex{0};
+  std::atomic<std::size_t> consumerIndex{0};
 
   std::size_t numberOfEntries{0};
   // should track number of overflows
