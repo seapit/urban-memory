@@ -16,34 +16,35 @@
 
 // fixed after seeing issue in unit test, ENUM_AND_STRING isn't useful for
 // bitshifted flags
-enum class Alarm {
-  empty = 0,
-  too_low = 1,
-  too_high = 1 << 1,
-  rateofchange = 1 << 2,
-  stale = 1 << 3,
-  cleared = 1 << 7
+#pragma pack(push, 1)
+struct Alarm {
+  std::uint8_t too_low : 1 {0};
+  std::uint8_t too_high : 1 {0};
+  std::uint8_t rateofchange : 1 {0};
+  std::uint8_t stale : 1 {0};
+  std::uint8_t cleared : 1 {0};
 };
+#pragma pack(pop)
 
 /// NAMESPACE
 
 /// DEFINES
 
 /// CODE
-constexpr Alarm operator&(Alarm lhs, Alarm rhs) noexcept {
-  return static_cast<Alarm>(static_cast<std::uint8_t>(lhs) &
-                            static_cast<std::uint8_t>(rhs));
-};
+// constexpr Alarm operator&(Alarm lhs, Alarm rhs) noexcept {
+//   return static_cast<Alarm>(static_cast<std::uint8_t>(lhs) &
+//                             static_cast<std::uint8_t>(rhs));
+// };
 
-constexpr Alarm operator|(Alarm lhs, Alarm rhs) noexcept {
-  return static_cast<Alarm>(static_cast<std::uint8_t>(lhs) |
-                            static_cast<std::uint8_t>(rhs));
-};
+// constexpr Alarm operator|(Alarm lhs, Alarm rhs) noexcept {
+//   return static_cast<Alarm>(static_cast<std::uint8_t>(lhs) |
+//                             static_cast<std::uint8_t>(rhs));
+// };
 
-constexpr Alarm &operator|=(Alarm &lhs, Alarm rhs) noexcept {
-  lhs = (lhs | rhs);
-  return lhs;
-};
+// constexpr Alarm &operator|=(Alarm &lhs, Alarm rhs) noexcept {
+//   lhs = (lhs | rhs);
+//   return lhs;
+// };
 
 /**
  * \brief alarmEntry to store/flag things
@@ -52,6 +53,7 @@ constexpr Alarm &operator|=(Alarm &lhs, Alarm rhs) noexcept {
  */
 struct alarmEntry {
   TelemetryIds id{TelemetryIds ::MAX};
-  Alarm cause{Alarm::empty};
+  Alarm cause{
+      .too_low = 0, .too_high = 0, .rateofchange = 0, .stale = 0, .cleared = 0};
   tmSample sample{};
 };
