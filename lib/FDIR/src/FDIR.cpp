@@ -6,11 +6,13 @@
 /// INCLUDES
 // #include <csignal>
 // #include <cstdio>
+#include <iostream>
 
 /// CMAKE INCLUDES
 // #include "version.h"
 
 /// USER INCLUDES
+#include "Common/HelperMacros.hpp"
 #include "FDIR/FDIR.hpp"
 
 /// NAMESPACE
@@ -18,44 +20,69 @@
 /// DEFINES
 
 /// CODE
-// FDIR::FDIR() { };
-
-void FDIR::step(std::chrono::milliseconds rhsElapsedTime) noexcept {
-  alarmEntry aAlarm;
-  // loop will keep executing as long as there are things in the queue
-  // we should ensure these are valid before we address them
-  while (alarmBuffer.try_pop(aAlarm)) {
-    checkAlarmValidity(aAlarm);
-  }
+// Runs within whoever's called it
+bool FDIR::raiseAlarm(const alarmEntry &rhsInput) noexcept {
+  return alarmBuffer.try_push(rhsInput);
 }
 
-void FDIR::checkAlarmValidity(const alarmEntry &rhsEntry) noexcept {
-  if (isEligible(rhsEntry.id) == false) {
+// logic to advance in time
+void FDIR::tick(std::chrono::milliseconds rhsElapsedTime) noexcept {
+  const auto ticks = static_cast<std::size_t>(rhsElapsedTime.count());
+
+  if (ticks == 0) {
     return;
   }
-  // a clear carries no cause bits by definition, so it cannot be gated on
-  // the same predicate that recognises a fault
-  if (rhsEntry.cause.cleared) {
-    actionableAlarm = false;
-  } else if (isValid(rhsEntry)) {
-    actionableAlarm = true;
+
+  lastStepTime_ticks = sizecast(rhsElapsedTime.count());
+
+  // create a receiver for the alarms in the buffer
+  alarmEntry aAlarm{};
+  // get alarm from out of queue
+  while (alarmBuffer.try_pop(aAlarm)) {
+    isActionable(aAlarm);
   }
+  std::cout << "FDIR commanded torque of: " << commandActuator() << std::endl;
 }
 
-bool FDIR::isEligible(TelemetryIds lhsId) const noexcept {
-  aRetVal{false};
-  for (const auto &[workableId, _] : faultConfiguration.eligibleTelemetries) {
-    if (lhsId == workableId) {
-      {
-        aReturn = true;
-        break;
-      }
-    }
+double FDIR::commandActuator() noexcept {
+  aRetVal{0.0};
+
+  const configuredAction &telemetry =
+      faultConfiguration.actionableTelemetries[0];
+
+  // if command is configured for an action, and there is something to do
+  if (telemetry.isConfigured() && dampingRequested && actionableAlarm) {
+
+    // pull tm from the database
+    const tmSample aLatest = telemetryDB.getLatest(telemetry.id);
+
+    aReturn = telemetry.damper->control(aLatest.readValue);
   }
+
   return aReturn;
 }
 
-bool FDIR::isValid(const alarmEntry &rhsEntry) const noexcept {
-  return (rhsEntry.cause.too_low || rhsEntry.cause.too_high ||
-          rhsEntry.cause.rateofchange || rhsEntry.cause.stale);
+bool FDIR::isActionable(const alarmEntry &rhsEntry) noexcept {
+
+  // if we're stale we should just skip
+  if (rhsEntry.cause.stale == 1) {
+    actionableAlarm = false;
+    return false;
+  }
+
+  // if alarm was just cleared,
+  // there is nothing to action
+  if (rhsEntry.cause.cleared) {
+    dampingRequested = false;
+    actionableAlarm = true;
+    return false;
+  }
+
+  // if any of the established failure criteria
+  if ((rhsEntry.cause.too_low == 1) || (rhsEntry.cause.too_high == 1) ||
+      (rhsEntry.cause.rateofchange == 1)) {
+    dampingRequested = true;
+    actionableAlarm = true;
+  }
+  return true;
 }

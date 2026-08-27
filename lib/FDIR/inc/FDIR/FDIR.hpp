@@ -1,6 +1,6 @@
 /**
  * \file FDIR.hpp
- * \brief A brief description of what this file is.
+ * \brief Consumes alarms from the health monitor and commands the rate damper.
  */
 
 #pragma once
@@ -8,60 +8,60 @@
 #include <chrono>
 #include <cstddef>
 
-/// CMAKE INCLUDES
-// #include "FDIR/version.h"
-
 /// USER INCLUDES
 #include "Alarm/Alarm.hpp"
 #include "Alarm/AlarmReceiver.hpp"
-#include "Common/HelperMacros.hpp"
 #include "Databases/TelemetryDB.hpp"
 #include "FDIR/AlarmQueue.hpp"
 #include "FDIR/Configuration.hpp"
-#include "Telemetry/Telemetry.hpp"
-/// NAMESPACE
-
-/// DEFINES
 
 /// CODE
+
 /**
  * \class FDIR
+ * \note Dependency is one way HMS -> Alarm -> FDIR
+ *  data is pulled straight from the telemetry. This module makes damping a
+ * decision to an alarm event.
+
  */
 class FDIR : public AlarmReceiver {
-  static inline constexpr std::size_t alarmBufferSize{4};
+  static inline constexpr std::size_t alarmBufferSize{16};
 
 public:
-  /**
-   * \brief Construct a new FDIR object
-   *
-   */
   FDIR(const fdirConfiguration &rhsConfiguration,
-       const CriticalTelemetryDB &rhsDatabase)
+       const CriticalTelemetryDB &rhsDatabase) noexcept
       : faultConfiguration(rhsConfiguration), telemetryDB(rhsDatabase) {};
 
-  bool raiseAlarm(const alarmEntry &rhsInput) noexcept override {
-    return alarmBuffer.try_push(rhsInput);
-  }
+  // Runs in the HEALTH MONITOR's context, so it does one thing: enqueue.
+  bool raiseAlarm(const alarmEntry &rhsInput) noexcept override;
 
-  // only one alarm can be actioned at a time, we are simulating an RTOS
-  // tasks are bounded and shouldn't slip
-  // decide which alarms are ok, THEN action the first one we can.
+  /**
+   * \brief simulate the execution of a FDIR task being executed
+   * general approach is parse all received alarms -> decide action
+   */
   void tick(std::chrono::milliseconds rhsElapsedTime) noexcept;
 
-  void actionAlarm() {}
-  // protected:
-
 private:
-  void checkAlarmValidity(const alarmEntry &rhsEntry) noexcept;
+  /**
+   * \brief Command the rate damper
+   */
+  double commandActuator() noexcept;
 
-  bool isEligible(TelemetryIds lhsId) const noexcept;
+  /**
+   * \brief filter the alarms to see if tehre is an action taken
+   * no action taken for stale or cleared
+   *
+   * \param rhsEntry
+   * \return true
+   * \return false
+   */
+  bool isActionable(const alarmEntry &rhsEntry) noexcept;
 
-  bool isValid(const alarmEntry &rhsEntry) const noexcept;
-  bool actionableAlarm{false};
-  [[maybe_unused]] bool actionedAlarm{false};
-  [[maybe_unused]] bool continueActioning{false};
+  bool dampingRequested{false};
+  bool actionableAlarm{true};
+  std::size_t lastStepTime_ticks{0};
 
   fdirConfiguration faultConfiguration;
-  [[maybe_unused]] const CriticalTelemetryDB &telemetryDB;
-  AlarmQueue<16> alarmBuffer;
+  const CriticalTelemetryDB &telemetryDB;
+  AlarmQueue<alarmBufferSize> alarmBuffer{};
 };
