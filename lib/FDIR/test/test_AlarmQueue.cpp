@@ -28,22 +28,18 @@ protected:
   std::string_view getString(Alarm rhs) {
     std::string_view aReturnStringView{};
 
-    switch (rhs) {
-    case (rhs.too_low):
+    if (rhs.too_low) {
       aReturnStringView = " too_low";
-      break;
-    case (rhs.too_high):
+    } else if (rhs.too_high) {
       aReturnStringView = " too_high ";
-      break;
-
-    case Alarm::rateofchange:
+    } else if (rhs.rateofchange) {
       aReturnStringView = " rateofchange ";
-      break;
-    case Alarm::stale:
-      aReturnStringView = " stale";
-      break;
-    default:
-      break;
+    }
+
+    else if (rhs.stale) {
+      aReturnStringView = " stale ";
+    } else {
+      aReturnStringView = "";
     }
     return aReturnStringView;
   }
@@ -60,13 +56,12 @@ protected:
 TEST_F(AlarmQueueTest, InitProbably) {}
 
 TEST_F(AlarmQueueTest, pushAlarm) {
-  using Alarm::too_high, Alarm::rateofchange, Alarm::too_low, Alarm::stale;
   using TelemetryIds::RateController1_x_AngularRate,
       TelemetryIds::Temperature_1, TelemetryIds::RateController2_x_AngularRate,
       TelemetryIds::Temperature_2, TelemetryIds::RateController3_x_AngularRate,
       TelemetryIds::Voltage, TelemetryIds::MAX;
 
-  Alarm aAlarm = too_low;
+  Alarm aAlarm{.too_low = 1};
   bool toValidate{false};
 
   alarmEntry aAlarmEntry{.id = RateController1_x_AngularRate,
@@ -86,19 +81,24 @@ TEST_F(AlarmQueueTest, pushAlarm) {
     // update alarm cause for next run
     switch (i) {
     case 0:
-      aAlarm = too_high;
+      aAlarm = {};
+      aAlarm.too_high = 1;
       break;
     case 1:
-      aAlarm = rateofchange;
+      aAlarm = {};
+      aAlarm.rateofchange = 1;
       break;
     case 2:
-      aAlarm = stale;
+      aAlarm = {};
+      aAlarm.stale = 1;
       break;
     case 3:
-      aAlarm = too_low;
+      aAlarm = {};
+      aAlarm.too_low = 1;
       break;
     case 4:
-      aAlarm = too_high;
+      aAlarm = {};
+      aAlarm.too_high = 1;
       break;
     default:
       break;
@@ -110,7 +110,8 @@ TEST_F(AlarmQueueTest, pushAlarm) {
 
   std::cout << std::endl;
   std::cout << std::endl;
-  aAlarm = too_low;
+  aAlarm = {};
+  aAlarm.too_low = 1;
 
   EXPECT_EQ(aTestBuf->getEntries(), queueSize);
   EXPECT_EQ(aTestBuf->getOverFlows(), 4);
@@ -130,16 +131,24 @@ TEST_F(AlarmQueueTest, pushAlarm) {
 
     switch (i) {
     case 0:
-      aAlarm = too_high;
+      aAlarm = {};
+      aAlarm.too_high = 1;
       break;
     case 1:
-      aAlarm = rateofchange;
+      aAlarm = {};
+      aAlarm.rateofchange = 1;
       break;
     case 2:
-      aAlarm = stale;
+      aAlarm = {};
+      aAlarm.stale = 1;
       break;
     case 3:
-      aAlarm = too_low;
+      aAlarm = {};
+      aAlarm.too_low = 1;
+      break;
+    case 4:
+      aAlarm = {};
+      aAlarm.too_high = 1;
       break;
     default:
       break;

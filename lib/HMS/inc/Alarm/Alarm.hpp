@@ -23,6 +23,9 @@ struct Alarm {
   std::uint8_t rateofchange : 1 {0};
   std::uint8_t stale : 1 {0};
   std::uint8_t cleared : 1 {0};
+
+  // use default comparator
+  bool operator==(const Alarm &rhs) const noexcept = default;
 };
 #pragma pack(pop)
 
