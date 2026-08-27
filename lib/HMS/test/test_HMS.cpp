@@ -156,6 +156,20 @@ protected:
     // call the HMS val
     aMonitor.checkMonitorCondition(std::chrono::milliseconds(currentTick));
   };
+
+  double getRateAbidingValue(double prev) {
+
+    // ROC = (X2 - X1) / ((t2 -1t)/1000) = 1000*(x2-x1)/(10)
+    // solve for x2
+
+    // RoC/100 = x2 -x1
+    // RoC/100 + x1 = x2
+
+    return (
+        (aTestConfig.sensorConfigs[1].maxAbsoluteRateOfChange_UnitHz / 100) +
+        prev);
+  }
+
   // use the same configuration from main I guess
   healthMonitorConfiguration aTestConfig{
       // use middle to ensure we skip a config
@@ -165,7 +179,7 @@ protected:
                              .units = "rad/sec",
                              .samplingPeriod_ticks = 10,
                              .lowLimit = .25,
-                             .highLimit = .25,
+                             .highLimit = .5,
                              .maxAbsoluteRateOfChange_UnitHz = 2.0,
                              // just need 1 tm to test this all
                              .telemetryToMonitor =
