@@ -59,6 +59,7 @@ void HealthMonitor::flagPrimedSensor(sensorState &rhsSensor,
 
 void HealthMonitor::evaluateRateOfChange(
     sensorState &rhsSensor, const tmSample &rhsSample) const noexcept {
+
   const double elapsedSeconds =
       // this is in ticks, 1 tick ~ 1ms
       (rhsSample.timestamp - rhsSensor.lastTMGenerationtime_ticks) / 1000.0;
@@ -110,6 +111,7 @@ void HealthMonitor::validateChannel(const std::size_t rhsIndex) noexcept {
     if (aTelemetry.timestamp == aSensor.lastTMGenerationtime_ticks) {
       aSensor.numberOfStale += 1;
 
+      // if we have detected a stale sensor
       // flag on the rising edge
       if ((aSensor.numberOfStale >= aChannelCfg.numberPermittedStaleUpdates) &&
           (aSensor.staleValues == false)) {
@@ -124,7 +126,7 @@ void HealthMonitor::validateChannel(const std::size_t rhsIndex) noexcept {
 
         // create alarm
         alarmEntry alarmToRaise{
-            .id = associatedTM, .cause = Alarm::stale, .sample = aTelemetry};
+            .id = associatedTM, .cause = {.stale = 1}, .sample = aTelemetry};
         // raise it
         // i dont have logic to raise this error if the raising of alarm doesn't
         // work
@@ -132,37 +134,22 @@ void HealthMonitor::validateChannel(const std::size_t rhsIndex) noexcept {
       }
       continue;
     }
+
     // if we got here we have not executed the stale 'continue'
     aSensor.numberOfStale = 0;
-    // reset stale fflag amd alarm
+    // reset stale flag and alarm
     if (aSensor.staleValues) {
       aSensor.staleValues = false;
       alarmEntry alarmToRaise{
-          .id = associatedTM, .cause = Alarm::empty, .sample = aTelemetry};
+          .id = associatedTM, .cause = {.cleared = 1}, .sample = aTelemetry};
       (void)alarmDestination.raiseAlarm(alarmToRaise);
     }
+
     // get elapsed time
     evaluateRateOfChange(aSensor, aTelemetry);
 
-    // convenience lambdas
-    auto outOfBounds = [&aSensor] {
-      return (aSensor.outOfRange_High || aSensor.outOfRange_Low ||
-              aSensor.outOfRange_RateOfChange);
-    };
-
-    auto alarmState = [&aSensor] {
-      aRetVal{Alarm::empty};
-      if (aSensor.outOfRange_High)
-        aReturn |= Alarm::too_high;
-      if (aSensor.outOfRange_Low)
-        aReturn |= Alarm::too_low;
-      if (aSensor.outOfRange_RateOfChange)
-        aReturn |= Alarm::rateofchange;
-      return aReturn;
-    };
-
     // false = was never out of limits
-    auto aPreviousState = isOutOfLimits(aSensor);
+    auto wasOutOfLimits = isOutOfLimits(aSensor);
 
     // Update the monitored flags
     aSensor.outOfRange_High = (aTelemetry.readValue > aChannelCfg.highLimit);
@@ -174,19 +161,31 @@ void HealthMonitor::validateChannel(const std::size_t rhsIndex) noexcept {
         (std::abs(aSensor.lastRateOfChange) >
          aChannelCfg.maxAbsoluteRateOfChange_UnitHz);
 
-    const auto aCurrentFlag = outOfBounds();
+    const auto currentlyOutOfBounds = isOutOfLimits(aSensor);
+
+    // convenience lambdas
+    auto alarmState = [&aSensor] {
+      aRetVal = Alarm{};
+      if (aSensor.outOfRange_High)
+        aReturn.too_high = 1;
+      if (aSensor.outOfRange_Low)
+        aReturn.too_low = 1;
+      if (aSensor.outOfRange_RateOfChange)
+        aReturn.rateofchange = 1;
+      return aReturn;
+    };
 
     // trigger on rising edge
-    if ((aPreviousState == false) && (aCurrentFlag == true)) {
-      alarmEntry aAlarm{
+    if ((wasOutOfLimits == false) && (currentlyOutOfBounds == true)) {
+      alarmEntry aAlarmEntry{
           .id = associatedTM, .cause = alarmState(), .sample = aTelemetry};
-      alarmDestination.raiseAlarm(aAlarm);
+      alarmDestination.raiseAlarm(aAlarmEntry);
     }
     // clear if we recovered
-    else if ((aPreviousState == true) && aCurrentFlag == false) {
-      alarmEntry aAlarm{
-          .id = associatedTM, .cause = Alarm::empty, .sample = aTelemetry};
-      alarmDestination.raiseAlarm(aAlarm);
+    else if ((wasOutOfLimits == true) && currentlyOutOfBounds == false) {
+      alarmEntry aAlarmEntry{
+          .id = associatedTM, .cause = {.cleared = 1}, .sample = aTelemetry};
+      alarmDestination.raiseAlarm(aAlarmEntry);
     }
     // update last values so we can get the rate of change next time
     aSensor.lastValue = aTelemetry.readValue;

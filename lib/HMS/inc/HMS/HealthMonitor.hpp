@@ -63,10 +63,6 @@ private:
   healthMonitorConfiguration stored_Configuration;
   std::array<sensorState, sizecast(TelemetryIds::MAX)> sensorStates;
 
-  // sufficient for a rate of change calculation
-  std::array<tmSample, healthMonitorConfiguration::requiredNumberofChannels>
-      previousSample{};
-
   const CriticalTelemetryDB &telemetryDatabase;
   AlarmReceiver &alarmDestination;
 };

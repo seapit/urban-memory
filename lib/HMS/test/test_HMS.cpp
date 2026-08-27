@@ -16,26 +16,28 @@ class aTestAlarmRcv : public AlarmReceiver {
 public:
   bool raiseAlarm(const alarmEntry &rhs) noexcept override {
 
-    bool aReturn{false};
-    if ((rhs.cause & Alarm::rateofchange) != Alarm::empty) {
-      OutOfRange_RoC = true;
-      aReturn = true;
-    }
-    if ((rhs.cause & Alarm::too_high) != Alarm::empty) {
-      OutOfRange_High = true;
-      aReturn = true;
-    }
-    if ((rhs.cause & Alarm::too_low) != Alarm::empty) {
+    aRetVal{false};
+    if (rhs.cause.too_low) {
       OutOfRange_Low = true;
       aReturn = true;
     }
-    if ((rhs.cause & Alarm::stale) != Alarm::empty) {
+    if (rhs.cause.too_high) {
+      OutOfRange_High = true;
+      aReturn = true;
+    }
+    if (rhs.cause.rateofchange) {
+      OutOfRange_RoC = true;
+      aReturn = true;
+    }
+    if (rhs.cause.stale) {
       OutOfRange_Stale = true;
       aReturn = true;
     }
-    if (rhs.cause == Alarm::empty) {
-      empty = true;
+    if (rhs.cause.cleared) {
+      cleared = true;
       aReturn = true;
+    } else {
+      cleared = false;
     }
 
     return aReturn;
@@ -46,14 +48,14 @@ public:
     OutOfRange_Low = false;
     OutOfRange_High = false;
     OutOfRange_RoC = false;
-    empty = false;
+    cleared = false;
   }
 
   bool OutOfRange_Stale{false};
   bool OutOfRange_Low{false};
   bool OutOfRange_High{false};
   bool OutOfRange_RoC{false};
-  bool empty{false};
+  bool cleared{false};
 };
 
 // Define a test fixture class
@@ -85,7 +87,6 @@ protected:
         .lastRateOfChange = 0.0,
 
         .lastTMGenerationtime_ticks = 0,
-        .numberOfSamples = 0,
         .hasfirstSample = false,
     };
 
@@ -110,7 +111,7 @@ protected:
     EXPECT_EQ(aAlarmRcver.OutOfRange_Low, false);
     EXPECT_EQ(aAlarmRcver.OutOfRange_High, false);
     EXPECT_EQ(aAlarmRcver.OutOfRange_RoC, false);
-    EXPECT_EQ(aAlarmRcver.empty, false);
+    EXPECT_EQ(aAlarmRcver.cleared, false);
   }
   void lowTripped() {
     EXPECT_EQ(aAlarmRcver.OutOfRange_Stale, false);
@@ -118,7 +119,7 @@ protected:
     EXPECT_EQ(aAlarmRcver.OutOfRange_High, false);
     EXPECT_EQ(aAlarmRcver.OutOfRange_RoC, false);
 
-    EXPECT_EQ(aAlarmRcver.empty, false);
+    EXPECT_EQ(aAlarmRcver.cleared, false);
   }
   void highTripped() {
     EXPECT_EQ(aAlarmRcver.OutOfRange_Stale, false);
@@ -126,25 +127,35 @@ protected:
     EXPECT_EQ(aAlarmRcver.OutOfRange_High, true);
     EXPECT_EQ(aAlarmRcver.OutOfRange_RoC, false);
 
-    EXPECT_EQ(aAlarmRcver.empty, false);
+    EXPECT_EQ(aAlarmRcver.cleared, false);
   }
   void rocTripped() {
     EXPECT_EQ(aAlarmRcver.OutOfRange_Stale, false);
     EXPECT_EQ(aAlarmRcver.OutOfRange_Low, false);
     EXPECT_EQ(aAlarmRcver.OutOfRange_High, false);
     EXPECT_EQ(aAlarmRcver.OutOfRange_RoC, true);
-    EXPECT_EQ(aAlarmRcver.empty, false);
+    EXPECT_EQ(aAlarmRcver.cleared, false);
   }
-  void noneTripped() {
+  void clearedAlarms() {
     EXPECT_EQ(aAlarmRcver.OutOfRange_Stale, false);
     EXPECT_EQ(aAlarmRcver.OutOfRange_Low, false);
     EXPECT_EQ(aAlarmRcver.OutOfRange_High, false);
     EXPECT_EQ(aAlarmRcver.OutOfRange_RoC, false);
 
-    EXPECT_EQ(aAlarmRcver.empty, false);
+    EXPECT_EQ(aAlarmRcver.cleared, true);
+  }
+
+  void noneTripped() {
+    EXPECT_EQ(aAlarmRcver.OutOfRange_Stale, false);
+    EXPECT_EQ(aAlarmRcver.OutOfRange_Low, false);
+    EXPECT_EQ(aAlarmRcver.OutOfRange_High, false);
+    EXPECT_EQ(aAlarmRcver.OutOfRange_RoC, false);
   }
 
   void tick(bool forcePublish, double rhsValue) {
+    // reset alarms each tick so we can judge the output of
+    // checkMonitorCondition independantly.
+    aAlarmRcver.reset();
     // update current tick
     currentTick += ticks;
 
@@ -157,7 +168,7 @@ protected:
     aMonitor.checkMonitorCondition(std::chrono::milliseconds(currentTick));
   };
 
-  double getRateAbidingValue(double prev) {
+  double getincreasingRateAbidingValue(double prev) {
 
     // ROC = (X2 - X1) / ((t2 -1t)/1000) = 1000*(x2-x1)/(10)
     // solve for x2
@@ -169,6 +180,41 @@ protected:
         (aTestConfig.sensorConfigs[1].maxAbsoluteRateOfChange_UnitHz / 100) +
         prev);
   }
+  double getdecreasingRateAbidingValue(double prev) {
+
+    // ROC = (X2 - X1) / ((t2 -1t)/1000) = 1000*(x2-x1)/(10)
+    // solve for x2
+
+    // RoC/100 = x2 -x1
+    // RoC/100 + x1 = x2
+
+    return (
+        prev -
+        (aTestConfig.sensorConfigs[1].maxAbsoluteRateOfChange_UnitHz / 100));
+  }
+
+  double getIncreasingRateBreakingValue(double prev) {
+
+    // ROC = (X2 - X1) / ((t2 -1t)/1000) = 1000*(x2-x1)/(10)
+    // solve for x2
+
+    // RoC/100 = x2 -x1
+    // RoC/100 + x1 = x2
+
+    return (std::nextafter(getincreasingRateAbidingValue(prev),
+                           std::numeric_limits<double>::infinity()));
+  }
+  double getDecreasingRateBreakingValue(double prev) {
+
+    // ROC = (X2 - X1) / ((t2 -1t)/1000) = 1000*(x2-x1)/(10)
+    // solve for x2
+
+    // RoC/100 = x2 -x1
+    // RoC/100 + x1 = x2
+
+    return (std::nextafter(getdecreasingRateAbidingValue(prev),
+                           -std::numeric_limits<double>::infinity()));
+  }
 
   // use the same configuration from main I guess
   healthMonitorConfiguration aTestConfig{
@@ -179,14 +225,13 @@ protected:
                              .units = "rad/sec",
                              .samplingPeriod_ticks = 10,
                              .lowLimit = .25,
-                             .highLimit = .5,
-                             .maxAbsoluteRateOfChange_UnitHz = 2.0,
+                             .highLimit = .55,
+                             .maxAbsoluteRateOfChange_UnitHz = 10.0,
                              // just need 1 tm to test this all
                              .telemetryToMonitor =
                                  {TelemetryIds::RateController1_x_AngularRate,
                                   TelemetryIds::MAX, TelemetryIds::MAX},
                              .numberPermittedStaleUpdates = 3,
-                             .numberOfRollingAverageSamples = 0,
                          },
                          {}}}};
 
@@ -204,8 +249,6 @@ protected:
 // use this as a linker test normally
 TEST_F(HMSTest, testPrimed) {
 
-  aTestSensor.numberOfSamples = 10;
-
   aTestTelemetry = {.readValue = 1.0, .timestamp = 1};
 
   EXPECT_NO_FATAL_FAILURE(
@@ -220,8 +263,6 @@ TEST_F(HMSTest, testPrimed) {
   EXPECT_EQ(aTestSensor.numberOfStale, 0);
 
   EXPECT_EQ(aTestSensor.lastRateOfChange, 0.0);
-
-  EXPECT_EQ(aTestSensor.numberOfSamples, 10);
 
   // test changed
   EXPECT_EQ(aTestSensor.lastValue, 1.0);
@@ -249,7 +290,6 @@ TEST_F(HMSTest, testROCEvaluation) {
 
   EXPECT_EQ(aTestSensor.lastValue, 0.0);
   EXPECT_EQ(aTestSensor.lastTMGenerationtime_ticks, 0);
-  EXPECT_EQ(aTestSensor.numberOfSamples, 0);
   EXPECT_EQ(aTestSensor.hasfirstSample, false);
 
   // test changed
@@ -296,71 +336,69 @@ TEST_F(HMSTest, testExecLoop) {
 
   auto lowValue = aTestConfig.sensorConfigs[1].lowLimit;
   auto highValue = aTestConfig.sensorConfigs[1].highLimit;
-  auto intermediateValue = (highValue + lowValue) / 2.0;
 
   // test a non-alarm TM
   EXPECT_NO_FATAL_FAILURE(tick(true, lowValue));
   std::cout << "low valid value" << std::endl;
   noneTripped();
-  EXPECT_NO_FATAL_FAILURE(tick(true, intermediateValue));
-  std::cout << "intermediate value" << std::endl;
-  noneTripped();
-  EXPECT_NO_FATAL_FAILURE(tick(true, highValue));
-  std::cout << "high valid value" << std::endl;
-  noneTripped();
 
-  // test low value
   std::cout << "low invalid value" << std::endl;
+  double aValue =
+      std::nextafter(lowValue, -std::numeric_limits<double>::infinity());
   EXPECT_NO_FATAL_FAILURE(
       // nextafter (I discovered writing this unit test), allows you to reduce a
       // double by exactly 1 bit. helping for testing this and being a
       // stickler
-      tick(true,
-           std::nextafter(lowValue, -std::numeric_limits<double>::infinity())));
+      tick(true, aValue));
   lowTripped();
   // clear so we can test the rest
-  aAlarmRcver.reset();
 
-  // will need to clear for RoC
-  std::cout << "prevent RoC Error" << std::endl;
-  EXPECT_NO_FATAL_FAILURE(tick(true, intermediateValue));
-  aAlarmRcver.reset();
+  // Ramp to high value
+  aValue = getincreasingRateAbidingValue(aValue);
+  while (aValue < highValue) {
+    EXPECT_NO_FATAL_FAILURE(tick(true, aValue));
+    noneTripped();
+    aValue = getincreasingRateAbidingValue(aValue);
+  }
 
-  // test high value
+  EXPECT_NO_FATAL_FAILURE(tick(true, highValue));
+  std::cout << "high valid value" << std::endl;
+  noneTripped();
+
+  // test high value, sitting on the high limit for the same reason as above
   std::cout << "high invalid value" << std::endl;
   EXPECT_NO_FATAL_FAILURE(
       tick(true,
            std::nextafter(highValue, std::numeric_limits<double>::infinity())));
   highTripped();
-  // clear so we can test the rest
-  aAlarmRcver.reset();
 
-  // elapsedSeconds = (1000 - 0)/ 1000 = 1000/1000=1
+  std::cout << "clear after high" << std::endl;
+  EXPECT_NO_FATAL_FAILURE(tick(true, highValue));
+  noneTripped();
 
-  // expect RATE OF CHANGE = 10.0
-  auto aROCValue = std::nextafter(
-      aTestConfig.sensorConfigs[1].maxAbsoluteRateOfChange_UnitHz,
-      std::numeric_limits<double>::infinity());
-
-  // ROC = (X2 - X1) / ((t2 -1t)/1000) = 1000*(x2-x1)/(10)
-  // ROC * (t2-t1)/1000 = x2 -x1
-  // RoC / 100  = x2- x1
-  // ROC /100 + x1 = x2
-  auto aValue = (aROCValue / 100) + highValue;
-
-  std::cout << "invalid roc" << std::endl;
+  std::cout << "invalid roc (decreasing)" << std::endl;
+  aValue = getDecreasingRateBreakingValue(highValue);
   EXPECT_NO_FATAL_FAILURE(tick(true, aValue));
   rocTripped();
-  aAlarmRcver.reset();
+
+  // clear the rising edge of the alarm by getting 2 valid low value twice
+  // this ensures we can isolate a RoC in the + direction
+  EXPECT_NO_FATAL_FAILURE(tick(true, lowValue));
+  EXPECT_NO_FATAL_FAILURE(tick(true, lowValue));
+  clearedAlarms();
+
+  std::cout << "invalid roc (increasing)" << std::endl;
+  EXPECT_NO_FATAL_FAILURE(tick(true, getIncreasingRateBreakingValue(lowValue)));
+  rocTripped();
 
   // test stale
   std::cout << "stale pass 1" << std::endl;
-  EXPECT_NO_FATAL_FAILURE(tick(false, intermediateValue));
+  EXPECT_NO_FATAL_FAILURE(tick(false, 0.0));
   noneTripped();
   std::cout << "stale pass 2" << std::endl;
-  EXPECT_NO_FATAL_FAILURE(tick(false, intermediateValue));
+  EXPECT_NO_FATAL_FAILURE(tick(false, 0.0));
   noneTripped();
   std::cout << "stale pass 3" << std::endl;
-  EXPECT_NO_FATAL_FAILURE(tick(false, intermediateValue));
+  EXPECT_NO_FATAL_FAILURE(tick(false, 0.0));
   staleTripped();
 }

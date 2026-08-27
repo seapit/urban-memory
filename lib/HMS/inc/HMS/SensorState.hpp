@@ -34,6 +34,5 @@ struct sensorState {
   double lastRateOfChange{0.0};
 
   std::size_t lastTMGenerationtime_ticks{0};
-  std::size_t numberOfSamples{0};
   bool hasfirstSample{false};
 };

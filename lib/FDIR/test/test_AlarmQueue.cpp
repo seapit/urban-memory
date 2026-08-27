@@ -29,13 +29,10 @@ protected:
     std::string_view aReturnStringView{};
 
     switch (rhs) {
-    case (Alarm::empty):
-      aReturnStringView = "empty ";
-      break;
-    case Alarm::too_low:
+    case (rhs.too_low):
       aReturnStringView = " too_low";
       break;
-    case Alarm::too_high:
+    case (rhs.too_high):
       aReturnStringView = " too_high ";
       break;
 
@@ -44,9 +41,6 @@ protected:
       break;
     case Alarm::stale:
       aReturnStringView = " stale";
-      break;
-    case Alarm::MAX:
-      aReturnStringView = " MAX";
       break;
     default:
       break;

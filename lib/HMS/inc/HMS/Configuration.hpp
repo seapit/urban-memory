@@ -61,10 +61,7 @@ struct channelConfiguration {
   std::array<TelemetryIds, maximumNumberOfIDs> telemetryToMonitor =
       fillArrayWithInvalid();
 
-  std::size_t numberPermittedStaleUpdates{0};
-
-  // placeholder
-  std::size_t numberOfRollingAverageSamples{0};
+  const std::size_t numberPermittedStaleUpdates{0};
 };
 
 /**
