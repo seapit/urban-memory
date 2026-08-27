@@ -8,6 +8,7 @@
 #include <chrono>
 #include <cstddef>
 #include <cstdio>
+#include <format>
 #include <string>
 
 /// CMAKE INCLUDES
@@ -139,15 +140,19 @@ static void rateDamperDemo(const CommonTool::Logger &rhsLogger) {
 
   // spans the linear region and the saturated one, both signs
   const double aRates[] = {0.0, 0.5, 1.0, 2.0, 2.5, 10.0, -0.5, -2.0, -10.0};
+  // std::to_string always gives six decimals and a variable width integer
+  // part, so nothing lines up. std::format takes the width AND the precision,
+  // which is what keeps the columns square as values change sign or magnitude.
+  rhsLogger.info("|rate                                  output torque|"));
+  rhsLogger.info("|---------------------------------------------------|");
 
   for (const double aRate : aRates) {
     const double aTorque = aDamper.control(aRate);
     const bool aSaturated =
         ((aTorque >= aTorqueFloor) || (aTorque <= (0 - aTorqueFloor)));
 
-    rhsLogger.info("    rate " + std::to_string(aRate) + "  ->  torque " +
-                   std::to_string(aTorque) +
-                   (aSaturated ? "   [clamped]" : ""));
+    rhsLogger.info(std::format("|{:>13.4f}  {:<11}{:>25.4f}|", aRate,
+                               (aSaturated ? "[clamped]" : ""), aTorque));
   }
 }
 
@@ -209,8 +214,9 @@ static void hmsDemo(const CommonTool::Logger &rhsLogger) {
     // sensors
     aMonitor.checkMonitorCondition(milliseconds{static_cast<long>(aTick)});
   }
-
-  rhsLogger.info("  alarms raised: " + std::to_string(aCollector.numberRaised));
+  rhsLogger.info("|Alarms raised:                                    " +
+                 std::to_string(aCollector.numberRaised) + "|");
+  rhsLogger.info("|---------------------------------------------------|");
 }
 
 static void fdirDemo(const CommonTool::Logger &rhsLogger) {
@@ -236,16 +242,16 @@ void printsomeInfo(const CommonTool::Logger &rhsLogger) {
   rhsLogger.info("|------------------- RATE DAMPER -------------------|");
   rhsLogger.info("|-------------------  Wheel Data -------------------|");
   rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("|Maximum Angular Momentum Nms                   11.0|");
-  rhsLogger.info("|Output Torque Floor                             1.0|");
-  rhsLogger.info("|Angular Rate (max) rev/min                    200.0|");
-  rhsLogger.info("|Voltage V                                      28.0|");
-  rhsLogger.info("|Voltage Variation V                             3.0|");
-  rhsLogger.info("|steady State Power Consumption                160.0|");
-  rhsLogger.info("|dampingGain N*m*sec/rad  (my selection)         0.5|");
-  rhsLogger.info("|mass kg                                        10.0|");
-  rhsLogger.info("|diameter mm                                   337.0|");
-  rhsLogger.info("|height mm                                     121.0|");
+  rhsLogger.info("|Maximum Angular Momentum Nms                 | 11.0|");
+  rhsLogger.info("|Output Torque Floor                          |  1.0|");
+  rhsLogger.info("|Angular Rate (max) rev/min                   |200.0|");
+  rhsLogger.info("|Voltage V                                    | 28.0|");
+  rhsLogger.info("|Voltage Variation V                          |  3.0|");
+  rhsLogger.info("|steady State Power Consumption               |160.0|");
+  rhsLogger.info("|dampingGain N*m*sec/rad  (my selection)      |  0.5|");
+  rhsLogger.info("|mass kg                                      | 10.0|");
+  rhsLogger.info("|diameter mm                                  |337.0|");
+  rhsLogger.info("|height mm                                    |121.0|");
   rhsLogger.info("|---------------------------------------------------|");
   rhsLogger.info("|---------------- HEALTH MONITORING ----------------|");
   rhsLogger.info("|----------------   Demo Sensors    ----------------|");
@@ -254,13 +260,14 @@ void printsomeInfo(const CommonTool::Logger &rhsLogger) {
   rhsLogger.info("|---------------------------------------------------|");
   rhsLogger.info("|Name:                                  Angular Rate|");
   rhsLogger.info("|Units:                                      rad/sec|");
-  rhsLogger.info("|Sampling Period (icks)                           10|");
-  rhsLogger.info("|Low Limit                                     -0.35|");
-  rhsLogger.info("|High Limit                                     0.35|");
-  rhsLogger.info("|Rate Limit                                      2.0|");
-  rhsLogger.info("|numberPermittedStaleUpdates                       3|");
   rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("|Associated TM IDs:                                 |");
+  rhsLogger.info("|Sampling Period (icks)                       |   10|");
+  rhsLogger.info("|Low Limit                                    |-0.35|");
+  rhsLogger.info("|High Limit                                   | 0.35|");
+  rhsLogger.info("|Rate Limit                                   |  2.0|");
+  rhsLogger.info("|numberPermittedStaleUpdates                  |    3|");
+  rhsLogger.info("|---------------------------------------------------|");
+  rhsLogger.info("|Associated TM:                                     |");
   rhsLogger.info("|---------------------------------------------------|");
   rhsLogger.info("| Name:                                           ID|");
   rhsLogger.info("| RateController1_x_AngularRate                    0|");
@@ -271,36 +278,39 @@ void printsomeInfo(const CommonTool::Logger &rhsLogger) {
   rhsLogger.info("|---------------------------------------------------|");
   rhsLogger.info("|Name:                                   Temperature|");
   rhsLogger.info("|Units:                                         degC|");
-  rhsLogger.info("|Sampling Period (icks)                         1000|");
-  rhsLogger.info("|Low Limit                                     -20.0|");
-  rhsLogger.info("|High Limit                                     65.0|");
-  rhsLogger.info("|Rate Limit                                      5.0|");
-  rhsLogger.info("|numberPermittedStaleUpdates                       3|");
   rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("|Associated TM IDs:                                 |");
+  rhsLogger.info("|Sampling Period (icks)                       | 1000|");
+  rhsLogger.info("|Low Limit                                    |-20.0|");
+  rhsLogger.info("|High Limit                                   | 65.0|");
+  rhsLogger.info("|Rate Limit                                   |  5.0|");
+  rhsLogger.info("|numberPermittedStaleUpdates                  |    3|");
   rhsLogger.info("|---------------------------------------------------|");
+  rhsLogger.info("|Associated TM:                                     |");
   rhsLogger.info("|---------------------------------------------------|");
   rhsLogger.info("| Name:                                           ID|");
-  rhsLogger.info("| Temperature_1                                    1|");
-  rhsLogger.info("| Temperature_2                                    3|");
-  rhsLogger.info("| N/A                              (MAX OF ENUM)   6|");
+  rhsLogger.info("|---------------------------------------------------|");
+  rhsLogger.info("| Temperature_1                                |   1|");
+  rhsLogger.info("| Temperature_2                                |   3|");
+  rhsLogger.info("| N/A                            (MAX OF ENUM) |   6|");
   rhsLogger.info("|---------------------------------------------------|");
   rhsLogger.info("|Sensor 3                                           |");
   rhsLogger.info("|---------------------------------------------------|");
   rhsLogger.info("|Name:                                       Voltage|");
   rhsLogger.info("|Units:                                        volts|");
-  rhsLogger.info("|Sampling Period (icks)                          100|");
-  rhsLogger.info("|Low Limit                                      11.5|");
-  rhsLogger.info("|High Limit                                     12.5|");
-  rhsLogger.info("|Rate Limit                                      0.5|");
-  rhsLogger.info("|numberPermittedStaleUpdates                       3|");
   rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("|Associated TM IDs:                                 |");
+  rhsLogger.info("|Sampling Period (icks)                       |  100|");
+  rhsLogger.info("|Low Limit                                    | 11.5|");
+  rhsLogger.info("|High Limit                                   | 12.5|");
+  rhsLogger.info("|Rate Limit                                   |  0.5|");
+  rhsLogger.info("|numberPermittedStaleUpdates                  |    3|");
+  rhsLogger.info("|---------------------------------------------------|");
+  rhsLogger.info("|Associated TM:                                     |");
   rhsLogger.info("|---------------------------------------------------|");
   rhsLogger.info("| Name:                                           ID|");
-  rhsLogger.info("| Voltage                                          1|");
-  rhsLogger.info("| N/A                              (MAX OF ENUM)   6|");
-  rhsLogger.info("| N/A                              (MAX OF ENUM)   6|");
+  rhsLogger.info("|---------------------------------------------------|");
+  rhsLogger.info("| Voltage                                    |     1|");
+  rhsLogger.info("| N/A                          (MAX OF ENUM) |     6|");
+  rhsLogger.info("| N/A                          (MAX OF ENUM) |     6|");
   rhsLogger.info("|---------------------------------------------------|");
 };
 
