@@ -213,7 +213,23 @@ static void hmsDemo(const CommonTool::Logger &rhsLogger) {
   rhsLogger.info("  alarms raised: " + std::to_string(aCollector.numberRaised));
 }
 
-// static void fdirDemo(const CommonTool::Logger &rhsLogger) {}
+static void fdirDemo(const CommonTool::Logger &rhsLogger) {
+
+  rhsLogger.info("|---------------------------------------------------|");
+  rhsLogger.info("|----------------------- FDIR ----------------------|");
+  rhsLogger.info("|---------------------------------------------------|");
+
+  CriticalTelemetryDB aTelemetry{};
+  RateDamper aDamper{RW1000Configuration};
+
+  const fdirConfiguration aFdirConfiguration{
+      .actionableTelemetries = {{
+          {RateController1_x_AngularRate, &aDamper},
+      }}};
+
+  FDIR aFdir{aFdirConfiguration, aTelemetry};
+  HealthMonitor aMonitor{demoConfig, aTelemetry, aFdir};
+}
 
 void printsomeInfo(const CommonTool::Logger &rhsLogger) {
   rhsLogger.info("|---------------------------------------------------|");
@@ -293,7 +309,7 @@ int main() {
   printsomeInfo(aLogger);
   rateDamperDemo(aLogger);
   hmsDemo(aLogger);
-  // fdirDemo(aLogger);
+  fdirDemo(aLogger);
 
   return 0;
 }
