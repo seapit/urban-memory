@@ -101,7 +101,9 @@ static std::string reflectCause(Alarm rhsCause) {
   if (rhsCause.cleared) {
     aReturn += " cleared";
   }
-  return aReturn.empty() ? std::string{" (none)"} : aReturn;
+  // every branch above prepends a space, so drop the leading one - a column
+  // that starts with a stray space is not aligned, it just looks aligned
+  return aReturn.empty() ? std::string{"(none)"} : aReturn.substr(1);
 }
 
 // intercept some alarms to be able to log them for the demo
@@ -110,11 +112,20 @@ public:
   explicit loggingAlarmReceiver(const CommonTool::Logger &rhsLogger) noexcept
       : logger(rhsLogger) {};
 
+  // the column widths match the header printed by hmsDemo, so the alarms
+  // land under their titles as they arrive
+  static void printHeader(const CommonTool::Logger &rhsLogger) {
+    rhsLogger.info(std::format("|{:>6}       {:>3}  {:>8}  {:<23}|", "tick",
+                               "TM", "value", "causes"));
+    rhsLogger.info("|---------------------------------------------------|");
+  }
+
   bool raiseAlarm(const alarmEntry &rhs) noexcept override {
-    logger.info("    t=" + std::to_string(rhs.sample.timestamp) +
-                " ticks  id=" + std::string{getTelemetryIdsstr(rhs.id)} +
-                "  value=" + std::to_string(rhs.sample.readValue) +
-                "  causes:" + reflectCause(rhs.cause));
+    // the numeric TM id, not the name - the names are 29 characters and would
+    // push the causes column outside the frame
+    logger.info(std::format("|{:>6}       {:>3}  {:>8.2f}  {:<23}|",
+                            rhs.sample.timestamp, sizecast(rhs.id),
+                            rhs.sample.readValue, reflectCause(rhs.cause)));
     ++numberRaised;
     return true;
   }
@@ -143,7 +154,8 @@ static void rateDamperDemo(const CommonTool::Logger &rhsLogger) {
   // std::to_string always gives six decimals and a variable width integer
   // part, so nothing lines up. std::format takes the width AND the precision,
   // which is what keeps the columns square as values change sign or magnitude.
-  rhsLogger.info("|rate                                  output torque|"));
+  rhsLogger.info(
+      std::format("|{:>12}       {:<11}{:>21}|", "rate", "", "output torque"));
   rhsLogger.info("|---------------------------------------------------|");
 
   for (const double aRate : aRates) {
@@ -151,9 +163,12 @@ static void rateDamperDemo(const CommonTool::Logger &rhsLogger) {
     const bool aSaturated =
         ((aTorque >= aTorqueFloor) || (aTorque <= (0 - aTorqueFloor)));
 
-    rhsLogger.info(std::format("|{:>13.4f}  {:<11}{:>25.4f}|", aRate,
+    rhsLogger.info(std::format("|{:>12.4f}       {:<11}{:>21.4f}|", aRate,
                                (aSaturated ? "[clamped]" : ""), aTorque));
   }
+
+  rhsLogger.info("|---------------------------------------------------|");
+  rhsLogger.info("");
 }
 
 static void hmsDemo(const CommonTool::Logger &rhsLogger) {
@@ -167,7 +182,6 @@ static void hmsDemo(const CommonTool::Logger &rhsLogger) {
   HealthMonitor aMonitor{demoConfig, aTelemetry, aCollector};
 
   rhsLogger.info("|See start of logs for HMS properties.              |");
-  rhsLogger.info("|---------------------------------------------------|");
 
   // indicate at which times we'll introduce errors for each of the channels
   rhsLogger.info("|---------------------------------------------------|");
@@ -183,6 +197,8 @@ static void hmsDemo(const CommonTool::Logger &rhsLogger) {
   rhsLogger.info("|Name     Time Interval(sec)     Time Interval(tick)|");
   rhsLogger.info("|Angular Rate     [8-8.5]          [8000-8500 ticks]|");
   rhsLogger.info("|---------------------------------------------------|");
+  loggingAlarmReceiver::printHeader(rhsLogger);
+
   for (std::size_t aTick = 10; aTick <= 9000; aTick += 10) {
 
     // ---- channel 0, the angular rates ----
@@ -214,9 +230,12 @@ static void hmsDemo(const CommonTool::Logger &rhsLogger) {
     // sensors
     aMonitor.checkMonitorCondition(milliseconds{static_cast<long>(aTick)});
   }
-  rhsLogger.info("|Alarms raised:                                    " +
-                 std::to_string(aCollector.numberRaised) + "|");
   rhsLogger.info("|---------------------------------------------------|");
+  rhsLogger.info(std::format("|{:<38}{:>8}|     ",
+                             "Alarms raised:", aCollector.numberRaised));
+  rhsLogger.info("|---------------------------------------------------|");
+
+  rhsLogger.info("");
 }
 
 static void fdirDemo(const CommonTool::Logger &rhsLogger) {
@@ -312,6 +331,7 @@ void printsomeInfo(const CommonTool::Logger &rhsLogger) {
   rhsLogger.info("| N/A                          (MAX OF ENUM) |     6|");
   rhsLogger.info("| N/A                          (MAX OF ENUM) |     6|");
   rhsLogger.info("|---------------------------------------------------|");
+  rhsLogger.info("");
 };
 
 int main() {
