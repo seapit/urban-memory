@@ -23,7 +23,7 @@ target_sources(${APP_NAME} # PUBLIC inc/Template.hpp
 
 # Replace ${APP_NAME} with the lib(s) this app actually depends on, e.g.
 # PRIVATE Lib1.
-target_link_libraries(${APP_NAME} PRIVATE HMS RateDamper Databases HMS Logger)
+target_link_libraries(${APP_NAME} PRIVATE HMS RateDamper Databases FDIR Logger)
 # target_include_directories(${APP_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/inc)
 
 # To include in a package uncomment below
