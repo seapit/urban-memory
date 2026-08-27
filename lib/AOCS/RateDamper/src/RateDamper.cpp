@@ -25,7 +25,8 @@ double RateDamper::control(double rhsAngularRate_rad_sec) noexcept {
   [[maybe_unused]] double aBoundedInputRate =
       boundedAngularRateValidation(rhsAngularRate_rad_sec);
 
-  aRetVal = damperConfig.dampingGain_N_m_s_per_rad * rhsAngularRate_rad_sec;
+  // we need to provide the oppposite direction from ang. rate. to damp
+  aRetVal = -(damperConfig.dampingGain_N_m_s_per_rad * rhsAngularRate_rad_sec);
 
   return boundedTorqueValidation(aReturn);
 };

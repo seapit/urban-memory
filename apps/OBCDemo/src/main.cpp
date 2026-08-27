@@ -231,7 +231,7 @@ static void hmsDemo(const CommonTool::Logger &rhsLogger) {
     aMonitor.checkMonitorCondition(milliseconds{static_cast<long>(aTick)});
   }
   rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info(std::format("|{:<38}{:>8}|     ",
+  rhsLogger.info(std::format("|{:<38}     {:>8}|",
                              "Alarms raised:", aCollector.numberRaised));
   rhsLogger.info("|---------------------------------------------------|");
 
