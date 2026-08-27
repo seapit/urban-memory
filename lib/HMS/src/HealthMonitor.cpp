@@ -24,23 +24,28 @@
 /// DEFINES
 
 /// CODE
-void HealthMonitor::step(std::chrono::milliseconds rhsElapsedTime) noexcept {
+void HealthMonitor::checkMonitorCondition(
+    std::chrono::milliseconds rhsElapsedTime) noexcept {
   const auto ticks = static_cast<std::size_t>(rhsElapsedTime.count());
 
   if (ticks == 0) {
     return;
   }
+
   const std::size_t elapsedTicks = sizecast(rhsElapsedTime.count());
 
   for (std::size_t i = 0;
        i < sizecast(healthMonitorConfiguration::requiredNumberofChannels);
        ++i) {
+
     const std::size_t samplingPeriod =
         stored_Configuration.sensorConfigs[i].samplingPeriod_ticks;
+
+    // if cancelled or polling period not met
     if ((samplingPeriod == 0) || ((elapsedTicks % samplingPeriod) != 0)) {
       continue;
     }
-    executionLoop(i);
+    validateChannel(i);
   }
 }
 
@@ -71,7 +76,7 @@ bool HealthMonitor::isOutOfLimits(const sensorState &rhsSensor) const noexcept {
           rhsSensor.outOfRange_RateOfChange);
 }
 
-void HealthMonitor::executionLoop(const std::size_t rhsIndex) noexcept {
+void HealthMonitor::validateChannel(const std::size_t rhsIndex) noexcept {
   // get the configuration we need for this channel's index
   const auto &aChannelCfg = stored_Configuration.sensorConfigs[rhsIndex];
 
@@ -91,7 +96,10 @@ void HealthMonitor::executionLoop(const std::size_t rhsIndex) noexcept {
 
     // prevent triggering on the first value
     if (aSensor.hasfirstSample == false) {
-      flagPrimedSensor(aSensor, aTelemetry);
+      //  telemetry.timeStamp is non-zero 0 we are receiving data
+      if (aTelemetry.timestamp != 0) {
+        flagPrimedSensor(aSensor, aTelemetry);
+      }
       // ensure we still loop through the others to make sure they've received
       // TM the first TM sample shouldn't trigger FDIR
       continue;
@@ -107,6 +115,12 @@ void HealthMonitor::executionLoop(const std::size_t rhsIndex) noexcept {
           (aSensor.staleValues == false)) {
         // set sensor to have stale values
         aSensor.staleValues = true;
+
+        // the sensor has stale values so any of the other alarms criteria may
+        // not apply anymore
+        aSensor.outOfRange_High = false;
+        aSensor.outOfRange_Low = false;
+        aSensor.outOfRange_RateOfChange = false;
 
         // create alarm
         alarmEntry alarmToRaise{

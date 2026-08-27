@@ -39,7 +39,7 @@ public:
         alarmDestination(rhsAlarmer) {};
 
   // for the demo
-  void step(std::chrono::milliseconds rhsElapsedTime) noexcept;
+  void checkMonitorCondition(std::chrono::milliseconds rhsElapsedTime) noexcept;
 
   /**
    * \brief indicate a sensor has received values, this is just to catch an
@@ -58,7 +58,7 @@ public:
   // protected:
 
 private:
-  void executionLoop(const std::size_t rhsIndex) noexcept;
+  void validateChannel(const std::size_t rhsIndex) noexcept;
 
   healthMonitorConfiguration stored_Configuration;
   std::array<sensorState, sizecast(TelemetryIds::MAX)> sensorStates;

@@ -61,7 +61,7 @@ struct channelConfiguration {
   std::array<TelemetryIds, maximumNumberOfIDs> telemetryToMonitor =
       fillArrayWithInvalid();
 
-  std::size_t numberPermittedStaleUpdates{3};
+  std::size_t numberPermittedStaleUpdates{0};
 
   // placeholder
   std::size_t numberOfRollingAverageSamples{0};
@@ -82,6 +82,10 @@ struct healthMonitorConfiguration {
   constexpr bool isConfigurationRealistic() const noexcept {
     bool isAValidConfig{true};
     for (const auto &configuration : sensorConfigs) {
+
+      // skip disabled/unconfigured channelconfigs
+      if (configuration.samplingPeriod_ticks == 0)
+        continue;
 
       isAValidConfig = isAValidConfig &&
                        ((configuration.lowLimit <= configuration.highLimit) &&
