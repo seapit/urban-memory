@@ -21,7 +21,8 @@ enum class Alarm {
   too_low = 1,
   too_high = 1 << 1,
   rateofchange = 1 << 2,
-  stale = 1 << 3
+  stale = 1 << 3,
+  cleared = 1 << 7
 };
 
 /// NAMESPACE
