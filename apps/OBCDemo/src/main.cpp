@@ -6,9 +6,11 @@
 
 /// INCLUDES
 #include <chrono>
+#include <cmath>
 #include <cstddef>
 #include <cstdio>
 #include <format>
+#include <numbers>
 #include <string>
 
 /// CMAKE INCLUDES
@@ -17,6 +19,7 @@
 /// USER INCLUDES
 #include "Alarm/Alarm.hpp"
 #include "Alarm/AlarmReceiver.hpp"
+#include "Common/Constants.hpp"
 #include "Databases/TelemetryDB.hpp"
 #include "FDIR/FDIR.hpp"
 #include "HMS/Configuration.hpp"
@@ -42,6 +45,13 @@ using milliseconds = std::chrono::milliseconds;
 // ---- demo timing -----------------------------------------------------------
 inline constexpr std::size_t systemTickRate_Hz{1000};
 inline constexpr double tickPeriod_sec{1.0 / systemTickRate_Hz};
+inline constexpr std::size_t simulationDuration_short_ticks{2000};
+
+// A rate that stays INSIDE the position limits but moves too fast, so the
+// only cause it can raise is rateofchange. 20 samples per period at the rate
+// channel's 10 tick period puts omega0 at 10*pi rad/sec.
+inline constexpr double rateOscillationAmplitude_rad_sec{0.30};
+inline constexpr std::size_t simulationDuration_med_ticks{10000};
 inline constexpr std::size_t simulationDuration_ticks{22000};
 
 inline constexpr std::size_t tumbleInjection_tick{2000};       // t = 2 sec
@@ -149,22 +159,30 @@ static void rateDamperDemo(const CommonTool::Logger &rhsLogger) {
   rhsLogger.info("|See start of logs for wheel properties.            |");
   rhsLogger.info("|---------------------------------------------------|");
 
-  // spans the linear region and the saturated one, both signs
-  const double aRates[] = {0.0, 0.5, 1.0, 2.0, 2.5, 10.0, -0.5, -2.0, -10.0};
-  // std::to_string always gives six decimals and a variable width integer
-  // part, so nothing lines up. std::format takes the width AND the precision,
-  // which is what keeps the columns square as values change sign or magnitude.
-  rhsLogger.info(
-      std::format("|{:>12}       {:<11}{:>21}|", "rate", "", "output torque"));
+  rhsLogger.info(std::format("|{:>6}       {:>10}  {:>10}  {:<14}|", "t(s)",
+                             "rate", "torque", ""));
   rhsLogger.info("|---------------------------------------------------|");
 
-  for (const double aRate : aRates) {
-    const double aTorque = aDamper.control(aRate);
-    const bool aSaturated =
-        ((aTorque >= aTorqueFloor) || (aTorque <= (0 - aTorqueFloor)));
+  constexpr double aStep_sec{0.01};
+  double aRate_rad_sec{2.5};
 
-    rhsLogger.info(std::format("|{:>12.4f}       {:<11}{:>21.4f}|", aRate,
-                               (aSaturated ? "[clamped]" : ""), aTorque));
+  for (std::size_t aStep = 0; aStep <= simulationDuration_short_ticks;
+       ++aStep) {
+    const double aTorque = aDamper.control(aRate_rad_sec);
+
+    // every step is 10 ms, 100 steps = 10*100 = 1000ms = 1 sec
+    // output on each 1 sec interval
+    if ((aStep % 100) == 0) {
+      const bool aSaturated =
+          ((aTorque >= aTorqueFloor) || (aTorque <= (0 - aTorqueFloor)));
+      rhsLogger.info(
+          std::format("|{:>6.1f}       {:>10.4f}  {:>10.4f}  {:<14}|",
+                      (10 * tickPeriod_sec * aStep), aRate_rad_sec, aTorque,
+                      (aSaturated ? "[clamped]" : "")));
+    }
+
+    // unit inertia, so omega_dot is numerically the torque
+    aRate_rad_sec += (aTorque * aStep_sec);
   }
 
   rhsLogger.info("|---------------------------------------------------|");
@@ -191,6 +209,7 @@ static void hmsDemo(const CommonTool::Logger &rhsLogger) {
   rhsLogger.info("|Angular Rate      [1-2]           [1000-2000 ticks]|");
   rhsLogger.info("|Temperature       [3-5]           [3000-5000 ticks]|");
   rhsLogger.info("|Voltage           [6-7]           [6000-7000 ticks]|");
+  rhsLogger.info("|Angular Rate      [9-10]         [9000-10000 ticks]|");
   rhsLogger.info("|---------------------------------------------------|");
   rhsLogger.info("|-------------- STALE INSERTION TIMES --------------|");
   rhsLogger.info("|---------------------------------------------------|");
@@ -199,15 +218,24 @@ static void hmsDemo(const CommonTool::Logger &rhsLogger) {
   rhsLogger.info("|---------------------------------------------------|");
   loggingAlarmReceiver::printHeader(rhsLogger);
 
-  for (std::size_t aTick = 10; aTick <= 9000; aTick += 10) {
+  for (std::size_t aTick = 10; aTick <= simulationDuration_med_ticks;
+       aTick += 10) {
 
-    // ---- channel 0, the angular rates ----
+    // set ticks where we inject faults
     const bool aRateFaulted = ((aTick >= 1000) && (aTick < 2000));
     const bool aRatePublishing = ((aTick < 8000) || (aTick >= 8500));
+    const bool aRateOscillating = ((aTick >= 9000) && (aTick < 10000));
 
     if (aRatePublishing) {
-      aTelemetry.publish(TelemetryIds::RateController1_x_AngularRate,
-                         tmSample{(aRateFaulted ? 0.40 : 0.10), aTick});
+      const double aSteady = (aRateFaulted ? 0.40 : 0.10);
+      const double aOscillating =
+          (rateOscillationAmplitude_rad_sec *
+           std::sin(10.0 * std::numbers::pi *
+                    (static_cast<double>(aTick) / 1000.0)));
+
+      aTelemetry.publish(
+          TelemetryIds::RateController1_x_AngularRate,
+          tmSample{(aRateOscillating ? aOscillating : aSteady), aTick});
     }
     // publish data for other 'rate controllers'
     aTelemetry.publish(TelemetryIds::RateController2_x_AngularRate,
@@ -238,10 +266,38 @@ static void hmsDemo(const CommonTool::Logger &rhsLogger) {
   rhsLogger.info("");
 }
 
+/**
+ * \class alarmInterceptor
+ * \brief Sits between the monitor and FDIR so the demo can report WHICH alarm
+ *        drove a command, then forwards it untouched.
+ * \note FDIR consumes alarms internally, so without this the log could show
+ *       the torque but not the reason for it.
+ */
+class alarmInterceptor final : public AlarmReceiver {
+public:
+  explicit alarmInterceptor(AlarmReceiver &FDIR) noexcept : next(FDIR) {};
+
+  bool raiseAlarm(const alarmEntry &rhs) noexcept override {
+    lastCause = rhs.cause;
+    raisedThisTick = true;
+    return next.raiseAlarm(rhs);
+  }
+
+  Alarm lastCause{};
+  bool raisedThisTick{false};
+
+private:
+  AlarmReceiver &next;
+};
+
 static void fdirDemo(const CommonTool::Logger &rhsLogger) {
 
   rhsLogger.info("|---------------------------------------------------|");
   rhsLogger.info("|----------------------- FDIR ----------------------|");
+  rhsLogger.info("|---------------------------------------------------|");
+  rhsLogger.info("| Commands rate damper from alarms                  |");
+  rhsLogger.info("| See start of logs for wheel properties and        |");
+  rhsLogger.info("| telemetry.                                        |");
   rhsLogger.info("|---------------------------------------------------|");
 
   CriticalTelemetryDB aTelemetry{};
@@ -253,7 +309,43 @@ static void fdirDemo(const CommonTool::Logger &rhsLogger) {
       }}};
 
   FDIR aFdir{aFdirConfiguration, aTelemetry};
-  HealthMonitor aMonitor{demoConfig, aTelemetry, aFdir};
+  alarmInterceptor aTap{aFdir};
+  HealthMonitor aMonitor{demoConfig, aTelemetry, aTap};
+
+  rhsLogger.info(std::format("|{:>8}  {:>18}  {:<21}|", "t(s)",
+                             "commanded torque", "alarm"));
+  rhsLogger.info("|---------------------------------------------------|");
+
+  for (std::chrono::milliseconds time = std::chrono::milliseconds{10};
+       sizecast(time.count()) <= simulationDuration_short_ticks;
+       time += std::chrono::milliseconds{10}) {
+
+    // reset output value
+    aTap.raisedThisTick = false;
+
+    // get the number of seconds
+    const double aSeconds = (static_cast<double>(time.count()) / 1000.0);
+
+    const double aRate_rad_sec = (rateOscillationAmplitude_rad_sec *
+                                  std::sin(10.0 * std::numbers::pi * aSeconds));
+
+    aTelemetry.publish(RateController1_x_AngularRate,
+                       tmSample{aRate_rad_sec, sizecast(time.count())});
+
+    aMonitor.checkMonitorCondition(time);
+
+    const double aTorque = aFdir.tick(time);
+
+    // a row per ALARM, since an alarm is the only thing that changes what
+    // FDIR does - printing every tick would bury them
+    if (aTap.raisedThisTick) {
+      rhsLogger.info(std::format("|{:>8.3f}  {:>18.4f}  {:<21}|", aSeconds,
+                                 aTorque, reflectCause(aTap.lastCause)));
+    }
+  }
+
+  rhsLogger.info("|---------------------------------------------------|");
+  rhsLogger.info("");
 }
 
 void printsomeInfo(const CommonTool::Logger &rhsLogger) {
