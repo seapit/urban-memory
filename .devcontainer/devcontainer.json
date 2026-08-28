@@ -1,0 +1,48 @@
+{
+	"name": "urban-memory",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+	// The Dockerfile ends with USER vscode and the features are baked in, but
+	// state it explicitly so behaviour does not depend on image metadata.
+	"remoteUser": "vscode",
+	"remoteEnv": {
+		"workspace": "${containerWorkspaceFolder}",
+		"devcontdir": "/devcontainer",
+		"dotFiles": "/devcontainer/dotfiles",
+		//   "SSH_AUTH_SOCK": "/ssh-agent",
+		"TZ": "America/New_York",
+		"CCACHE_DIR": "/home/vscode/.cache/ccache",
+		"CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
+		"CMAKE_C_COMPILER_LAUNCHER": "ccache"
+	},
+	"runArgs": [
+		"--name",
+		"${localWorkspaceFolderBasename}-dev-container"
+	],
+	"mounts": [],
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+	// Use 'postCreateCommand' to run commands after the container is created.
+	// Configure tool-specific properties.
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"jebbs.plantuml",
+				"cschlosser.doxdocgen",
+				"ms-vscode.cpptools",
+				"xaver.clang-format",
+				"augustocdias.tasks-shell-input",
+				"GitHub.github-vscode-theme",
+				"matepek.vscode-catch2-test-adapter",
+				"cheshirekow.cmake-format",
+				"ArturoDent.folder-operations",
+				"foxundermoon.shell-format",
+				"helly25.helly25iwyu",
+				"toluwaanimi.dockerfile-tidy",
+				"redhat.vscode-yaml",
+				"semgrep.semgrep"
+			]
+		}
+	}
+}

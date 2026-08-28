@@ -223,19 +223,20 @@ static void hmsDemo(const CommonTool::Logger &rhsLogger) {
 
     // set ticks where we inject faults
     const bool aRateFaulted = ((aTick >= 1000) && (aTick < 2000));
-    const bool aRatePublishing = ((aTick < 8000) || (aTick >= 8500));
-    const bool aRateOscillating = ((aTick >= 9000) && (aTick < 10000));
+    const bool aRatePublishCondition = ((aTick < 8000) || (aTick >= 8500));
+    const bool aOscillationTickRange = ((aTick >= 9000) && (aTick < 10000));
 
-    if (aRatePublishing) {
-      const double aSteady = (aRateFaulted ? 0.40 : 0.10);
-      const double aOscillating =
+    if (aRatePublishCondition) {
+      const double aSteadyRate = (aRateFaulted ? 0.40 : 0.10);
+      const double aOscillationRate =
           (rateOscillationAmplitude_rad_sec *
            std::sin(10.0 * std::numbers::pi *
                     (static_cast<double>(aTick) / 1000.0)));
 
       aTelemetry.publish(
           TelemetryIds::RateController1_x_AngularRate,
-          tmSample{(aRateOscillating ? aOscillating : aSteady), aTick});
+          tmSample{(aOscillationTickRange ? aOscillationRate : aSteadyRate),
+                   aTick});
     }
     // publish data for other 'rate controllers'
     aTelemetry.publish(TelemetryIds::RateController2_x_AngularRate,
@@ -317,7 +318,7 @@ static void fdirDemo(const CommonTool::Logger &rhsLogger) {
   rhsLogger.info("|---------------------------------------------------|");
 
   for (std::chrono::milliseconds time = std::chrono::milliseconds{10};
-       sizecast(time.count()) <= simulationDuration_short_ticks;
+       sizecast(time.count()) <= simulationDuration_ticks;
        time += std::chrono::milliseconds{10}) {
 
     // reset output value
@@ -326,11 +327,34 @@ static void fdirDemo(const CommonTool::Logger &rhsLogger) {
     // get the number of seconds
     const double aSeconds = (static_cast<double>(time.count()) / 1000.0);
 
-    const double aRate_rad_sec = (rateOscillationAmplitude_rad_sec *
-                                  std::sin(10.0 * std::numbers::pi * aSeconds));
+    // get tick in size_t
+    const std::size_t aTick = sizecast(time.count());
 
-    aTelemetry.publish(RateController1_x_AngularRate,
-                       tmSample{aRate_rad_sec, sizecast(time.count())});
+    // condition to insert a diff in the angular rate
+    const bool aTumbleCondition_tick = (aTick >= tumbleInjection_tick);
+
+    // conditions to force a stale mode
+    const bool aPublishConditionTickRange =
+        ((aTick < ratePublisherStops_tick) ||
+         (aTick >= ratePublisherResumes_tick));
+
+    // condition to allow a
+    const bool aOscillationTickRange = (aTick < (tumbleInjection_tick / 2));
+
+    const double aOscillationRate =
+        (rateOscillationAmplitude_rad_sec *
+         std::sin(10.0 * std::numbers::pi * aSeconds));
+
+    const double aSteadyRate =
+        (aOscillationTickRange ? aOscillationRate : 0.10);
+
+    if (aPublishConditionTickRange) {
+      aTelemetry.publish(
+          RateController1_x_AngularRate,
+          tmSample{
+              (aTumbleCondition_tick ? angularRateConditionTime : aSteadyRate),
+              aTick});
+    }
 
     aMonitor.checkMonitorCondition(time);
 
