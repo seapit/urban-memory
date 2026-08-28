@@ -10,6 +10,7 @@
 #include <cstddef>
 #include <cstdio>
 #include <format>
+#include <iostream>
 #include <numbers>
 #include <string>
 
@@ -19,7 +20,6 @@
 /// USER INCLUDES
 #include "Alarm/Alarm.hpp"
 #include "Alarm/AlarmReceiver.hpp"
-#include "Common/Constants.hpp"
 #include "Databases/TelemetryDB.hpp"
 #include "FDIR/FDIR.hpp"
 #include "HMS/Configuration.hpp"
@@ -119,49 +119,58 @@ static std::string reflectCause(Alarm rhsCause) {
 // intercept some alarms to be able to log them for the demo
 class loggingAlarmReceiver final : public AlarmReceiver {
 public:
-  explicit loggingAlarmReceiver(const CommonTool::Logger &rhsLogger) noexcept
-      : logger(rhsLogger) {};
+  loggingAlarmReceiver() = default;
 
   // the column widths match the header printed by hmsDemo, so the alarms
   // land under their titles as they arrive
-  static void printHeader(const CommonTool::Logger &rhsLogger) {
-    rhsLogger.info(std::format("|{:>6}       {:>3}  {:>8}  {:<23}|", "tick",
-                               "TM", "value", "causes"));
-    rhsLogger.info("|---------------------------------------------------|");
+  static void printHeader() {
+    std::cout << std::format("|{:>6}       {:>3}  {:>8}  {:<23}|", "tick", "TM",
+                             "value", "causes")
+              << std::endl;
+
+    std::cout << "|---------------------------------------------------|"
+              << std::endl;
   }
 
   bool raiseAlarm(const alarmEntry &rhs) noexcept override {
     // the numeric TM id, not the name - the names are 29 characters and would
     // push the causes column outside the frame
-    logger.info(std::format("|{:>6}       {:>3}  {:>8.2f}  {:<23}|",
-                            rhs.sample.timestamp, sizecast(rhs.id),
-                            rhs.sample.readValue, reflectCause(rhs.cause)));
+    std::cout << std::format("|{:>6}       {:>3}  {:>8.2f}  {:<23}|",
+                             rhs.sample.timestamp, sizecast(rhs.id),
+                             rhs.sample.readValue, reflectCause(rhs.cause))
+              << std::endl;
+    ;
     ++numberRaised;
     return true;
   }
 
   std::size_t numberRaised{0};
-
-private:
-  const CommonTool::Logger &logger;
 };
 
 // RateDamper in isolation
-static void rateDamperDemo(const CommonTool::Logger &rhsLogger) {
-  rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("|------------------- RATE DAMPER -------------------|");
-  rhsLogger.info("|---------------------------------------------------|");
+static void rateDamperDemo() {
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
+  std::cout << "|------------------- RATE DAMPER -------------------|"
+            << std::endl;
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
 
   RateDamper aDamper{RW1000Configuration};
 
   const double aTorqueFloor = RW1000Configuration.outputTorque_Floor_N_m;
 
-  rhsLogger.info("|See start of logs for wheel properties.            |");
-  rhsLogger.info("|---------------------------------------------------|");
+  std::cout << "|See start of logs for wheel properties.            |"
+            << std::endl;
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
 
-  rhsLogger.info(std::format("|{:>6}       {:>10}  {:>10}  {:<14}|", "t(s)",
-                             "rate", "torque", ""));
-  rhsLogger.info("|---------------------------------------------------|");
+  std::cout << std::format("|{:>6}       {:>10}  {:>10}  {:<14}|", "t(s)",
+                           "rate", "torque", "")
+            << std::endl;
+  ;
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
 
   constexpr double aStep_sec{0.01};
   double aRate_rad_sec{2.5};
@@ -175,48 +184,68 @@ static void rateDamperDemo(const CommonTool::Logger &rhsLogger) {
     if ((aStep % 100) == 0) {
       const bool aSaturated =
           ((aTorque >= aTorqueFloor) || (aTorque <= (0 - aTorqueFloor)));
-      rhsLogger.info(
-          std::format("|{:>6.1f}       {:>10.4f}  {:>10.4f}  {:<14}|",
-                      (10 * tickPeriod_sec * aStep), aRate_rad_sec, aTorque,
-                      (aSaturated ? "[clamped]" : "")));
+      std::cout << std::format("|{:>6.1f}       {:>10.4f}  {:>10.4f}  {:<14}|",
+                               (10 * tickPeriod_sec * aStep), aRate_rad_sec,
+                               aTorque, (aSaturated ? "[clamped]" : ""))
+                << std::endl;
+      ;
     }
 
     // unit inertia, so omega_dot is numerically the torque
     aRate_rad_sec += (aTorque * aStep_sec);
   }
 
-  rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("");
+  std::cout << "|---------------------------------------------------|"
+            << std::endl
+            << std::endl;
 }
 
-static void hmsDemo(const CommonTool::Logger &rhsLogger) {
-  rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("|---------------- HEALTH MONITORING ----------------|");
-  rhsLogger.info("|---------------------------------------------------|");
+static void hmsDemo() {
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
+  std::cout << "|---------------- HEALTH MONITORING ----------------|"
+            << std::endl;
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
 
   // init everything based off unit tests
   CriticalTelemetryDB aTelemetry{};
-  loggingAlarmReceiver aCollector{rhsLogger};
+  loggingAlarmReceiver aCollector{};
   HealthMonitor aMonitor{demoConfig, aTelemetry, aCollector};
 
-  rhsLogger.info("|See start of logs for HMS properties.              |");
+  std::cout << "|See start of logs for HMS properties.              |"
+            << std::endl;
 
   // indicate at which times we'll introduce errors for each of the channels
-  rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("|-------------- FAULT INJECTION TIMES --------------|");
-  rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("|Name     Time Interval(sec)     Time Interval(tick)|");
-  rhsLogger.info("|Angular Rate      [1-2]           [1000-2000 ticks]|");
-  rhsLogger.info("|Temperature       [3-5]           [3000-5000 ticks]|");
-  rhsLogger.info("|Voltage           [6-7]           [6000-7000 ticks]|");
-  rhsLogger.info("|Angular Rate      [9-10]         [9000-10000 ticks]|");
-  rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("|-------------- STALE INSERTION TIMES --------------|");
-  rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("|Name     Time Interval(sec)     Time Interval(tick)|");
-  rhsLogger.info("|Angular Rate     [8-8.5]          [8000-8500 ticks]|");
-  rhsLogger.info("|---------------------------------------------------|");
-  loggingAlarmReceiver::printHeader(rhsLogger);
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
+  std::cout << "|-------------- FAULT INJECTION TIMES --------------|"
+            << std::endl;
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
+  std::cout << "|Name     Time Interval(sec)     Time Interval(tick)|"
+            << std::endl;
+  std::cout << "|Angular Rate      [1-2]           [1000-2000 ticks]|"
+            << std::endl;
+  std::cout << "|Temperature       [3-5]           [3000-5000 ticks]|"
+            << std::endl;
+  std::cout << "|Voltage           [6-7]           [6000-7000 ticks]|"
+            << std::endl;
+  std::cout << "|Angular Rate      [9-10]         [9000-10000 ticks]|"
+            << std::endl;
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
+  std::cout << "|-------------- STALE INSERTION TIMES --------------|"
+            << std::endl;
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
+  std::cout << "|Name     Time Interval(sec)     Time Interval(tick)|"
+            << std::endl;
+  std::cout << "|Angular Rate     [8-8.5]          [8000-8500 ticks]|"
+            << std::endl;
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
+  loggingAlarmReceiver::printHeader();
 
   for (std::size_t aTick = 10; aTick <= simulationDuration_med_ticks;
        aTick += 10) {
@@ -259,12 +288,14 @@ static void hmsDemo(const CommonTool::Logger &rhsLogger) {
     // sensors
     aMonitor.checkMonitorCondition(milliseconds{static_cast<long>(aTick)});
   }
-  rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info(std::format("|{:<38}     {:>8}|",
-                             "Alarms raised:", aCollector.numberRaised));
-  rhsLogger.info("|---------------------------------------------------|");
-
-  rhsLogger.info("");
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
+  std::cout << std::format("|{:<38}     {:>8}|",
+                           "Alarms raised:", aCollector.numberRaised)
+            << std::endl;
+  std::cout << "|---------------------------------------------------|"
+            << std::endl
+            << std::endl;
 }
 
 /**
@@ -291,16 +322,22 @@ private:
   AlarmReceiver &next;
 };
 
-static void fdirDemo(const CommonTool::Logger &rhsLogger) {
+static void fdirDemo() {
 
-  rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("|----------------------- FDIR ----------------------|");
-  rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("| Commands rate damper from alarms                  |");
-  rhsLogger.info("| See start of logs for wheel properties and        |");
-  rhsLogger.info("| telemetry.                                        |");
-  rhsLogger.info("|---------------------------------------------------|");
-
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
+  std::cout << "|----------------------- FDIR ----------------------|"
+            << std::endl;
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
+  std::cout << "| Commands rate damper from alarms                  |"
+            << std::endl;
+  std::cout << "| See start of logs for wheel properties and        |"
+            << std::endl;
+  std::cout << "| telemetry.                                        |"
+            << std::endl;
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
   CriticalTelemetryDB aTelemetry{};
   RateDamper aDamper{RW1000Configuration};
 
@@ -313,9 +350,13 @@ static void fdirDemo(const CommonTool::Logger &rhsLogger) {
   alarmInterceptor aTap{aFdir};
   HealthMonitor aMonitor{demoConfig, aTelemetry, aTap};
 
-  rhsLogger.info(std::format("|{:>8}  {:>18}  {:<21}|", "t(s)",
-                             "commanded torque", "alarm"));
-  rhsLogger.info("|---------------------------------------------------|");
+  std::cout << std::format("|{:>8}  {:>18}  {:<21}|", "t(s)",
+                           "commanded torque", "alarm")
+            << std::endl;
+  ;
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
+  ;
 
   for (std::chrono::milliseconds time = std::chrono::milliseconds{10};
        sizecast(time.count()) <= simulationDuration_ticks;
@@ -363,99 +404,175 @@ static void fdirDemo(const CommonTool::Logger &rhsLogger) {
     // a row per ALARM, since an alarm is the only thing that changes what
     // FDIR does - printing every tick would bury them
     if (aTap.raisedThisTick) {
-      rhsLogger.info(std::format("|{:>8.3f}  {:>18.4f}  {:<21}|", aSeconds,
-                                 aTorque, reflectCause(aTap.lastCause)));
+      std::cout << std::format("|{:>8.3f}  {:>18.4f}  {:<21}|", aSeconds,
+                               aTorque, reflectCause(aTap.lastCause))
+                << std::endl;
+      ;
     }
   }
 
-  rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("");
+  std::cout << "|---------------------------------------------------|"
+            << std::endl
+            << std::endl;
 }
 
-void printsomeInfo(const CommonTool::Logger &rhsLogger) {
-  rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("|------------------- RATE DAMPER -------------------|");
-  rhsLogger.info("|-------------------  Wheel Data -------------------|");
-  rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("|Maximum Angular Momentum Nms                 | 11.0|");
-  rhsLogger.info("|Output Torque Floor                          |  1.0|");
-  rhsLogger.info("|Angular Rate (max) rev/min                   |200.0|");
-  rhsLogger.info("|Voltage V                                    | 28.0|");
-  rhsLogger.info("|Voltage Variation V                          |  3.0|");
-  rhsLogger.info("|steady State Power Consumption               |160.0|");
-  rhsLogger.info("|dampingGain N*m*sec/rad  (my selection)      |  0.5|");
-  rhsLogger.info("|mass kg                                      | 10.0|");
-  rhsLogger.info("|diameter mm                                  |337.0|");
-  rhsLogger.info("|height mm                                    |121.0|");
-  rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("|---------------- HEALTH MONITORING ----------------|");
-  rhsLogger.info("|----------------   Demo Sensors    ----------------|");
-  rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("|Sensor 1                                           |");
-  rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("|Name:                                  Angular Rate|");
-  rhsLogger.info("|Units:                                      rad/sec|");
-  rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("|Sampling Period (icks)                       |   10|");
-  rhsLogger.info("|Low Limit                                    |-0.35|");
-  rhsLogger.info("|High Limit                                   | 0.35|");
-  rhsLogger.info("|Rate Limit                                   |  2.0|");
-  rhsLogger.info("|numberPermittedStaleUpdates                  |    3|");
-  rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("|Associated TM:                                     |");
-  rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("| Name:                                           ID|");
-  rhsLogger.info("| RateController1_x_AngularRate                    0|");
-  rhsLogger.info("| RateController2_x_AngularRate                    2|");
-  rhsLogger.info("| RateController3_x_AngularRate                    4|");
-  rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("|Sensor 2                                           |");
-  rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("|Name:                                   Temperature|");
-  rhsLogger.info("|Units:                                         degC|");
-  rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("|Sampling Period (icks)                       | 1000|");
-  rhsLogger.info("|Low Limit                                    |-20.0|");
-  rhsLogger.info("|High Limit                                   | 65.0|");
-  rhsLogger.info("|Rate Limit                                   |  5.0|");
-  rhsLogger.info("|numberPermittedStaleUpdates                  |    3|");
-  rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("|Associated TM:                                     |");
-  rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("| Name:                                           ID|");
-  rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("| Temperature_1                                |   1|");
-  rhsLogger.info("| Temperature_2                                |   3|");
-  rhsLogger.info("| N/A                            (MAX OF ENUM) |   6|");
-  rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("|Sensor 3                                           |");
-  rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("|Name:                                       Voltage|");
-  rhsLogger.info("|Units:                                        volts|");
-  rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("|Sampling Period (icks)                       |  100|");
-  rhsLogger.info("|Low Limit                                    | 11.5|");
-  rhsLogger.info("|High Limit                                   | 12.5|");
-  rhsLogger.info("|Rate Limit                                   |  0.5|");
-  rhsLogger.info("|numberPermittedStaleUpdates                  |    3|");
-  rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("|Associated TM:                                     |");
-  rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("| Name:                                           ID|");
-  rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("| Voltage                                    |     1|");
-  rhsLogger.info("| N/A                          (MAX OF ENUM) |     6|");
-  rhsLogger.info("| N/A                          (MAX OF ENUM) |     6|");
-  rhsLogger.info("|---------------------------------------------------|");
-  rhsLogger.info("");
-};
+void printsomeInfo() {
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
+  std::cout << "|------------------- RATE DAMPER -------------------|"
+            << std::endl;
+  std::cout << "|-------------------  Wheel Data -------------------|"
+            << std::endl;
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
+  std::cout << "|Maximum Angular Momentum Nms                 | 11.0|"
+            << std::endl;
+  std::cout << "|Output Torque Floor                          |  1.0|"
+            << std::endl;
+  std::cout << "|Angular Rate (max) rev/min                   |200.0|"
+            << std::endl;
+  std::cout << "|Voltage V                                    | 28.0|"
+            << std::endl;
+  std::cout << "|Voltage Variation V                          |  3.0|"
+            << std::endl;
+  std::cout << "|steady State Power Consumption               |160.0|"
+            << std::endl;
+  std::cout << "|dampingGain N*m*sec/rad  (my selection)      |  0.5|"
+            << std::endl;
+  std::cout << "|mass kg                                      | 10.0|"
+            << std::endl;
+  std::cout << "|diameter mm                                  |337.0|"
+            << std::endl;
+  std::cout << "|height mm                                    |121.0|"
+            << std::endl;
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
+  std::cout << "|---------------- HEALTH MONITORING ----------------|"
+            << std::endl;
+  std::cout << "|----------------   Demo Sensors    ----------------|"
+            << std::endl;
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
+  std::cout << "|Sensor 1                                           |"
+            << std::endl;
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
+  std::cout << "|Name:                                  Angular Rate|"
+            << std::endl;
+  std::cout << "|Units:                                      rad/sec|"
+            << std::endl;
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
+  std::cout << "|Sampling Period (icks)                       |   10|"
+            << std::endl;
+  std::cout << "|Low Limit                                    |-0.35|"
+            << std::endl;
+  std::cout << "|High Limit                                   | 0.35|"
+            << std::endl;
+  std::cout << "|Rate Limit                                   |  2.0|"
+            << std::endl;
+  std::cout << "|numberPermittedStaleUpdates                  |    3|"
+            << std::endl;
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
+  std::cout << "|Associated TM:                                     |"
+            << std::endl;
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
+  std::cout << "| Name:                                           ID|"
+            << std::endl;
+  std::cout << "| RateController1_x_AngularRate                    0|"
+            << std::endl;
+  std::cout << "| RateController2_x_AngularRate                    2|"
+            << std::endl;
+  std::cout << "| RateController3_x_AngularRate                    4|"
+            << std::endl;
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
+  std::cout << "|Sensor 2                                           |"
+            << std::endl;
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
+  std::cout << "|Name:                                   Temperature|"
+            << std::endl;
+  std::cout << "|Units:                                         degC|"
+            << std::endl;
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
+  std::cout << "|Sampling Period (icks)                       | 1000|"
+            << std::endl;
+  std::cout << "|Low Limit                                    |-20.0|"
+            << std::endl;
+  std::cout << "|High Limit                                   | 65.0|"
+            << std::endl;
+  std::cout << "|Rate Limit                                   |  5.0|"
+            << std::endl;
+  std::cout << "|numberPermittedStaleUpdates                  |    3|"
+            << std::endl;
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
+  std::cout << "|Associated TM:                                     |"
+            << std::endl;
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
+  std::cout << "| Name:                                           ID|"
+            << std::endl;
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
+  std::cout << "| Temperature_1                                |   1|"
+            << std::endl;
+  std::cout << "| Temperature_2                                |   3|"
+            << std::endl;
+  std::cout << "| N/A                            (MAX OF ENUM) |   6|"
+            << std::endl;
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
+  std::cout << "|Sensor 3                                           |"
+            << std::endl;
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
+  std::cout << "|Name:                                       Voltage|"
+            << std::endl;
+  std::cout << "|Units:                                        volts|"
+            << std::endl;
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
+  std::cout << "|Sampling Period (icks)                       |  100|"
+            << std::endl;
+  std::cout << "|Low Limit                                    | 11.5|"
+            << std::endl;
+  std::cout << "|High Limit                                   | 12.5|"
+            << std::endl;
+  std::cout << "|Rate Limit                                   |  0.5|"
+            << std::endl;
+  std::cout << "|numberPermittedStaleUpdates                  |    3|"
+            << std::endl;
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
+  std::cout << "|Associated TM:                                     |"
+            << std::endl;
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
+  std::cout << "| Name:                                           ID|"
+            << std::endl;
+  std::cout << "|---------------------------------------------------|"
+            << std::endl;
+  std::cout << "| Voltage                                    |     1|"
+            << std::endl;
+  std::cout << "| N/A                          (MAX OF ENUM) |     6|"
+            << std::endl;
+  std::cout << "| N/A                          (MAX OF ENUM) |     6|"
+            << std::endl;
+  std::cout << "|---------------------------------------------------|"
+            << std::endl
+            << std::endl;
+}
 
 int main() {
-  CommonTool::Logger aLogger{"OBCDemo"};
-  printsomeInfo(aLogger);
-  rateDamperDemo(aLogger);
-  hmsDemo(aLogger);
-  fdirDemo(aLogger);
+  printsomeInfo();
+  rateDamperDemo();
+  hmsDemo();
+  fdirDemo();
 
   return 0;
 }
