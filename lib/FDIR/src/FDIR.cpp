@@ -26,22 +26,24 @@ bool FDIR::raiseAlarm(const alarmEntry &rhsInput) noexcept {
 }
 
 // logic to advance in time
-void FDIR::tick(std::chrono::milliseconds rhsElapsedTime) noexcept {
+double FDIR::tick(std::chrono::milliseconds rhsElapsedTime) noexcept {
+  aRetVal{0.0};
+
   const auto ticks = static_cast<std::size_t>(rhsElapsedTime.count());
 
-  if (ticks == 0) {
-    return;
+  if (ticks != 0) {
+    lastStepTime_ticks = sizecast(rhsElapsedTime.count());
+
+    // create a receiver for the alarms in the buffer
+    alarmEntry aAlarm{};
+    // get alarm from out of queue
+    while (alarmBuffer.try_pop(aAlarm)) {
+      isActionable(aAlarm);
+    }
+    aReturn = commandActuator();
   }
 
-  lastStepTime_ticks = sizecast(rhsElapsedTime.count());
-
-  // create a receiver for the alarms in the buffer
-  alarmEntry aAlarm{};
-  // get alarm from out of queue
-  while (alarmBuffer.try_pop(aAlarm)) {
-    isActionable(aAlarm);
-  }
-  std::cout << "FDIR commanded torque of: " << commandActuator() << std::endl;
+  return aReturn;
 }
 
 double FDIR::commandActuator() noexcept {

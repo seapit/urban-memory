@@ -38,8 +38,11 @@ public:
   /**
    * \brief simulate the execution of a FDIR task being executed
    * general approach is parse all received alarms -> decide action
+   *
+   * \param rhsElapsedTime
+   * \return double - simulated commanded torque
    */
-  void tick(std::chrono::milliseconds rhsElapsedTime) noexcept;
+  double tick(std::chrono::milliseconds rhsElapsedTime) noexcept;
 
 private:
   /**
