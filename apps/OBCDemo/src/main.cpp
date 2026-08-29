@@ -24,7 +24,6 @@
 #include "FDIR/FDIR.hpp"
 #include "HMS/Configuration.hpp"
 #include "HMS/HealthMonitor.hpp"
-#include "Logger/Logger.hpp"
 #include "RateDamper/RateDamper.hpp"
 #include "RateDamper/Wheels/RW1000.hpp"
 #include "Telemetry/Telemetry.hpp"
@@ -126,9 +125,7 @@ public:
   static void printHeader() {
     std::cout << std::format("|{:>6}       {:>3}  {:>8}  {:<23}|", "tick", "TM",
                              "value", "causes")
-              << std::endl;
-
-    std::cout << "|---------------------------------------------------|"
+              << "\n|---------------------------------------------------|"
               << std::endl;
   }
 
@@ -138,8 +135,7 @@ public:
     std::cout << std::format("|{:>6}       {:>3}  {:>8.2f}  {:<23}|",
                              rhs.sample.timestamp, sizecast(rhs.id),
                              rhs.sample.readValue, reflectCause(rhs.cause))
-              << std::endl;
-    ;
+              << '\n';
     ++numberRaised;
     return true;
   }
@@ -149,28 +145,20 @@ public:
 
 // RateDamper in isolation
 static void rateDamperDemo() {
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
-  std::cout << "|------------------- RATE DAMPER -------------------|"
-            << std::endl;
-  std::cout << "|---------------------------------------------------|"
+
+  std::cout << "|---------------------------------------------------|\n"
+            << "|------------------- RATE DAMPER -------------------|\n"
+            << "|---------------------------------------------------|\n"
+            << "|See start of logs for wheel properties.            |\n"
+            << "|---------------------------------------------------|\n"
+            << std::format("|{:>6}       {:>10}  {:>10}  {:<14}|", "t(s)",
+                           "rate", "torque", "")
+            << "\n|---------------------------------------------------|"
             << std::endl;
 
   RateDamper aDamper{RW1000Configuration};
 
   const double aTorqueFloor = RW1000Configuration.outputTorque_Floor_N_m;
-
-  std::cout << "|See start of logs for wheel properties.            |"
-            << std::endl;
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
-
-  std::cout << std::format("|{:>6}       {:>10}  {:>10}  {:<14}|", "t(s)",
-                           "rate", "torque", "")
-            << std::endl;
-  ;
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
 
   constexpr double aStep_sec{0.01};
   double aRate_rad_sec{2.5};
@@ -187,63 +175,42 @@ static void rateDamperDemo() {
       std::cout << std::format("|{:>6.1f}       {:>10.4f}  {:>10.4f}  {:<14}|",
                                (10 * tickPeriod_sec * aStep), aRate_rad_sec,
                                aTorque, (aSaturated ? "[clamped]" : ""))
-                << std::endl;
-      ;
+                << '\n';
     }
 
     // unit inertia, so omega_dot is numerically the torque
     aRate_rad_sec += (aTorque * aStep_sec);
   }
 
-  std::cout << "|---------------------------------------------------|"
-            << std::endl
+  std::cout << "|---------------------------------------------------|\n"
             << std::endl;
 }
 
 static void hmsDemo() {
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
-  std::cout << "|---------------- HEALTH MONITORING ----------------|"
-            << std::endl;
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
-
   // init everything based off unit tests
   CriticalTelemetryDB aTelemetry{};
   loggingAlarmReceiver aCollector{};
   HealthMonitor aMonitor{demoConfig, aTelemetry, aCollector};
 
-  std::cout << "|See start of logs for HMS properties.              |"
-            << std::endl;
-
   // indicate at which times we'll introduce errors for each of the channels
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
-  std::cout << "|-------------- FAULT INJECTION TIMES --------------|"
-            << std::endl;
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
-  std::cout << "|Name     Time Interval(sec)     Time Interval(tick)|"
-            << std::endl;
-  std::cout << "|Angular Rate      [1-2]           [1000-2000 ticks]|"
-            << std::endl;
-  std::cout << "|Temperature       [3-5]           [3000-5000 ticks]|"
-            << std::endl;
-  std::cout << "|Voltage           [6-7]           [6000-7000 ticks]|"
-            << std::endl;
-  std::cout << "|Angular Rate      [9-10]         [9000-10000 ticks]|"
-            << std::endl;
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
-  std::cout << "|-------------- STALE INSERTION TIMES --------------|"
-            << std::endl;
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
-  std::cout << "|Name     Time Interval(sec)     Time Interval(tick)|"
-            << std::endl;
-  std::cout << "|Angular Rate     [8-8.5]          [8000-8500 ticks]|"
-            << std::endl;
-  std::cout << "|---------------------------------------------------|"
+  std::cout << "|---------------------------------------------------|\n"
+            << "|---------------- HEALTH MONITORING ----------------|\n"
+            << "|---------------------------------------------------|\n"
+            << "|See start of logs for HMS properties.              |\n"
+            << "|---------------------------------------------------|\n"
+            << "|-------------- FAULT INJECTION TIMES --------------|\n"
+            << "|---------------------------------------------------|\n"
+            << "|Name     Time Interval(sec)     Time Interval(tick)|\n"
+            << "|Angular Rate      [1-2]           [1000-2000 ticks]|\n"
+            << "|Temperature       [3-5]           [3000-5000 ticks]|\n"
+            << "|Voltage           [6-7]           [6000-7000 ticks]|\n"
+            << "|Angular Rate      [9-10]         [9000-10000 ticks]|\n"
+            << "|---------------------------------------------------|\n"
+            << "|-------------- STALE INSERTION TIMES --------------|\n"
+            << "|---------------------------------------------------|\n"
+            << "|Name     Time Interval(sec)     Time Interval(tick)|\n"
+            << "|Angular Rate     [8-8.5]          [8000-8500 ticks]|\n"
+            << "|---------------------------------------------------|"
             << std::endl;
   loggingAlarmReceiver::printHeader();
 
@@ -288,13 +255,10 @@ static void hmsDemo() {
     // sensors
     aMonitor.checkMonitorCondition(milliseconds{static_cast<long>(aTick)});
   }
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
-  std::cout << std::format("|{:<38}     {:>8}|",
+  std::cout << "|---------------------------------------------------|\n"
+            << std::format("|{:<38}     {:>8}|",
                            "Alarms raised:", aCollector.numberRaised)
-            << std::endl;
-  std::cout << "|---------------------------------------------------|"
-            << std::endl
+            << "\n|---------------------------------------------------|\n"
             << std::endl;
 }
 
@@ -323,21 +287,6 @@ private:
 };
 
 static void fdirDemo() {
-
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
-  std::cout << "|----------------------- FDIR ----------------------|"
-            << std::endl;
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
-  std::cout << "| Commands rate damper from alarms                  |"
-            << std::endl;
-  std::cout << "| See start of logs for wheel properties and        |"
-            << std::endl;
-  std::cout << "| telemetry.                                        |"
-            << std::endl;
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
   CriticalTelemetryDB aTelemetry{};
   RateDamper aDamper{RW1000Configuration};
 
@@ -350,13 +299,17 @@ static void fdirDemo() {
   alarmInterceptor aTap{aFdir};
   HealthMonitor aMonitor{demoConfig, aTelemetry, aTap};
 
-  std::cout << std::format("|{:>8}  {:>18}  {:<21}|", "t(s)",
+  std::cout << "|---------------------------------------------------|\n"
+            << "|----------------------- FDIR ----------------------|\n"
+            << "|---------------------------------------------------|\n"
+            << "| Commands rate damper from alarms                  |\n"
+            << "| See start of logs for wheel properties and        |\n"
+            << "| telemetry.                                        |\n"
+            << "|---------------------------------------------------|\n"
+            << std::format("|{:>8}  {:>18}  {:<21}|", "t(s)",
                            "commanded torque", "alarm")
+            << "\n|---------------------------------------------------|"
             << std::endl;
-  ;
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
-  ;
 
   for (std::chrono::milliseconds time = std::chrono::milliseconds{10};
        sizecast(time.count()) <= simulationDuration_ticks;
@@ -406,165 +359,89 @@ static void fdirDemo() {
     if (aTap.raisedThisTick) {
       std::cout << std::format("|{:>8.3f}  {:>18.4f}  {:<21}|", aSeconds,
                                aTorque, reflectCause(aTap.lastCause))
-                << std::endl;
-      ;
+                << '\n';
     }
   }
 
-  std::cout << "|---------------------------------------------------|"
-            << std::endl
+  std::cout << "|---------------------------------------------------|\n"
             << std::endl;
 }
 
 void printsomeInfo() {
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
-  std::cout << "|------------------- RATE DAMPER -------------------|"
-            << std::endl;
-  std::cout << "|-------------------  Wheel Data -------------------|"
-            << std::endl;
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
-  std::cout << "|Maximum Angular Momentum Nms                 | 11.0|"
-            << std::endl;
-  std::cout << "|Output Torque Floor                          |  1.0|"
-            << std::endl;
-  std::cout << "|Angular Rate (max) rev/min                   |200.0|"
-            << std::endl;
-  std::cout << "|Voltage V                                    | 28.0|"
-            << std::endl;
-  std::cout << "|Voltage Variation V                          |  3.0|"
-            << std::endl;
-  std::cout << "|steady State Power Consumption               |160.0|"
-            << std::endl;
-  std::cout << "|dampingGain N*m*sec/rad  (my selection)      |  0.5|"
-            << std::endl;
-  std::cout << "|mass kg                                      | 10.0|"
-            << std::endl;
-  std::cout << "|diameter mm                                  |337.0|"
-            << std::endl;
-  std::cout << "|height mm                                    |121.0|"
-            << std::endl;
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
-  std::cout << "|---------------- HEALTH MONITORING ----------------|"
-            << std::endl;
-  std::cout << "|----------------   Demo Sensors    ----------------|"
-            << std::endl;
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
-  std::cout << "|Sensor 1                                           |"
-            << std::endl;
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
-  std::cout << "|Name:                                  Angular Rate|"
-            << std::endl;
-  std::cout << "|Units:                                      rad/sec|"
-            << std::endl;
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
-  std::cout << "|Sampling Period (icks)                       |   10|"
-            << std::endl;
-  std::cout << "|Low Limit                                    |-0.35|"
-            << std::endl;
-  std::cout << "|High Limit                                   | 0.35|"
-            << std::endl;
-  std::cout << "|Rate Limit                                   |  2.0|"
-            << std::endl;
-  std::cout << "|numberPermittedStaleUpdates                  |    3|"
-            << std::endl;
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
-  std::cout << "|Associated TM:                                     |"
-            << std::endl;
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
-  std::cout << "| Name:                                           ID|"
-            << std::endl;
-  std::cout << "| RateController1_x_AngularRate                    0|"
-            << std::endl;
-  std::cout << "| RateController2_x_AngularRate                    2|"
-            << std::endl;
-  std::cout << "| RateController3_x_AngularRate                    4|"
-            << std::endl;
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
-  std::cout << "|Sensor 2                                           |"
-            << std::endl;
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
-  std::cout << "|Name:                                   Temperature|"
-            << std::endl;
-  std::cout << "|Units:                                         degC|"
-            << std::endl;
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
-  std::cout << "|Sampling Period (icks)                       | 1000|"
-            << std::endl;
-  std::cout << "|Low Limit                                    |-20.0|"
-            << std::endl;
-  std::cout << "|High Limit                                   | 65.0|"
-            << std::endl;
-  std::cout << "|Rate Limit                                   |  5.0|"
-            << std::endl;
-  std::cout << "|numberPermittedStaleUpdates                  |    3|"
-            << std::endl;
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
-  std::cout << "|Associated TM:                                     |"
-            << std::endl;
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
-  std::cout << "| Name:                                           ID|"
-            << std::endl;
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
-  std::cout << "| Temperature_1                                |   1|"
-            << std::endl;
-  std::cout << "| Temperature_2                                |   3|"
-            << std::endl;
-  std::cout << "| N/A                            (MAX OF ENUM) |   6|"
-            << std::endl;
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
-  std::cout << "|Sensor 3                                           |"
-            << std::endl;
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
-  std::cout << "|Name:                                       Voltage|"
-            << std::endl;
-  std::cout << "|Units:                                        volts|"
-            << std::endl;
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
-  std::cout << "|Sampling Period (icks)                       |  100|"
-            << std::endl;
-  std::cout << "|Low Limit                                    | 11.5|"
-            << std::endl;
-  std::cout << "|High Limit                                   | 12.5|"
-            << std::endl;
-  std::cout << "|Rate Limit                                   |  0.5|"
-            << std::endl;
-  std::cout << "|numberPermittedStaleUpdates                  |    3|"
-            << std::endl;
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
-  std::cout << "|Associated TM:                                     |"
-            << std::endl;
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
-  std::cout << "| Name:                                           ID|"
-            << std::endl;
-  std::cout << "|---------------------------------------------------|"
-            << std::endl;
-  std::cout << "| Voltage                                    |     1|"
-            << std::endl;
-  std::cout << "| N/A                          (MAX OF ENUM) |     6|"
-            << std::endl;
-  std::cout << "| N/A                          (MAX OF ENUM) |     6|"
-            << std::endl;
-  std::cout << "|---------------------------------------------------|"
-            << std::endl
+  std::cout << "|---------------------------------------------------|\n"
+            << "|------------------- RATE DAMPER -------------------|\n"
+            << "|-------------------  Wheel Data -------------------|\n"
+            << "|---------------------------------------------------|\n"
+            << "|Maximum Angular Momentum Nms                 | 11.0|\n"
+            << "|Output Torque Floor                          |  1.0|\n"
+            << "|Angular Rate (max) rev/min                   |200.0|\n"
+            << "|Voltage V                                    | 28.0|\n"
+            << "|Voltage Variation V                          |  3.0|\n"
+            << "|steady State Power Consumption               |160.0|\n"
+            << "|dampingGain N*m*sec/rad  (my selection)      |  0.5|\n"
+            << "|mass kg                                      | 10.0|\n"
+            << "|diameter mm                                  |337.0|\n"
+            << "|height mm                                    |121.0|\n"
+            << "|---------------------------------------------------|\n"
+            << "|---------------- HEALTH MONITORING ----------------|\n"
+            << "|----------------   Demo Sensors    ----------------|\n"
+            << "|---------------------------------------------------|\n"
+            << "|Sensor 1                                           |\n"
+            << "|---------------------------------------------------|\n"
+            << "|Name:                                  Angular Rate|\n"
+            << "|Units:                                      rad/sec|\n"
+            << "|---------------------------------------------------|\n"
+            << "|Sampling Period (icks)                       |   10|\n"
+            << "|Low Limit                                    |-0.35|\n"
+            << "|High Limit                                   | 0.35|\n"
+            << "|Rate Limit                                   |  2.0|\n"
+            << "|numberPermittedStaleUpdates                  |    3|\n"
+            << "|---------------------------------------------------|\n"
+            << "|Associated TM:                                     |\n"
+            << "|---------------------------------------------------|\n"
+            << "| Name:                                           ID|\n"
+            << "| RateController1_x_AngularRate                    0|\n"
+            << "| RateController2_x_AngularRate                    2|\n"
+            << "| RateController3_x_AngularRate                    4|\n"
+            << "|---------------------------------------------------|\n"
+            << "|Sensor 2                                           |\n"
+            << "|---------------------------------------------------|\n"
+            << "|Name:                                   Temperature|\n"
+            << "|Units:                                         degC|\n"
+            << "|---------------------------------------------------|\n"
+            << "|Sampling Period (icks)                       | 1000|\n"
+            << "|Low Limit                                    |-20.0|\n"
+            << "|High Limit                                   | 65.0|\n"
+            << "|Rate Limit                                   |  5.0|\n"
+            << "|numberPermittedStaleUpdates                  |    3|\n"
+            << "|---------------------------------------------------|\n"
+            << "|Associated TM:                                     |\n"
+            << "|---------------------------------------------------|\n"
+            << "| Name:                                           ID|\n"
+            << "|---------------------------------------------------|\n"
+            << "| Temperature_1                                |   1|\n"
+            << "| Temperature_2                                |   3|\n"
+            << "| N/A                            (MAX OF ENUM) |   6|\n"
+            << "|---------------------------------------------------|\n"
+            << "|Sensor 3                                           |\n"
+            << "|---------------------------------------------------|\n"
+            << "|Name:                                       Voltage|\n"
+            << "|Units:                                        volts|\n"
+            << "|---------------------------------------------------|\n"
+            << "|Sampling Period (icks)                       |  100|\n"
+            << "|Low Limit                                    | 11.5|\n"
+            << "|High Limit                                   | 12.5|\n"
+            << "|Rate Limit                                   |  0.5|\n"
+            << "|numberPermittedStaleUpdates                  |    3|\n"
+            << "|---------------------------------------------------|\n"
+            << "|Associated TM:                                     |\n"
+            << "|---------------------------------------------------|\n"
+            << "| Name:                                           ID|\n"
+            << "|---------------------------------------------------|\n"
+            << "| Voltage                                    |     1|\n"
+            << "| N/A                          (MAX OF ENUM) |     6|\n"
+            << "| N/A                          (MAX OF ENUM) |     6|\n"
+            << "|---------------------------------------------------|\n"
             << std::endl;
 }
 
