@@ -1,0 +1,58 @@
+@startuml
+' TTC CSCI — the CSCI in full, with every relation that crosses its boundary.
+' Everything drawn in grey is context: it is shown only far enough to say what
+' this CSCI talks to. The whole picture is in obc-csci-full.puml.
+' GENERATED from obc-csci-full.puml — edit that file, then re-run split.py.
+
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam nodesep 30
+skinparam ranksep 58
+skinparam defaultFontSize 12
+skinparam wrapWidth 240
+skinparam package {
+  BackgroundColor #FFFFFF
+  BorderColor #777777
+}
+skinparam component {
+  BackgroundColor #FFFFFF
+  BorderColor #333333
+}
+skinparam database {
+  BackgroundColor #FFFFFF
+  BorderColor #333333
+}
+
+' ---------------------------------------------- the CSCI under view
+package "TTC CSCI" as TTC #EAF2FB {
+  component "SpaceWire CSC" as SPW
+  component "Encryption CSC" as ENC
+}
+
+' ---------------------------------------------- context only
+package "I/O interfaces" as IFACE {
+  component "SpaceWire" as SPWIF #F0F0F0
+}
+package "Scheduling CSCI" as SCHED {
+  component "CCSDS / PUS Dispatcher CSC" as CCSDS #F0F0F0
+  component "Downlink Scheduler CSC" as DLSCHED #F0F0F0
+}
+package "RF front end" as RF {
+  component "Channel Coding" as COD #F0F0F0
+  component "Transceiver" as TXRX #F0F0F0
+  component "Antenna" as ANT #F0F0F0
+}
+
+' ---------------------------------------------- inside the CSCI
+SPW <--> ENC : TC in (encrypted) /\nTM frames out
+
+' ---------------------------------------------- across its boundary
+SPWIF <--> SPW : SpaceWire link
+ENC <--> CCSDS : TC in (decrypted) /\nTM frames out
+DLSCHED --> ENC : downlink stream,\ntransmitted by class
+COD <--> SPWIF : TM / TC transfer frames
+TXRX <--> COD : baseband
+ANT <--> TXRX : RF
+
+@enduml

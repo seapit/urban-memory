@@ -1,0 +1,74 @@
+@startuml
+' Health Monitoring (Platform) CSCI — the CSCI in full, with every relation that crosses its boundary.
+' Everything drawn in grey is context: it is shown only far enough to say what
+' this CSCI talks to. The whole picture is in obc-csci-full.puml.
+' GENERATED from obc-csci-full.puml — edit that file, then re-run split.py.
+
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam nodesep 30
+skinparam ranksep 58
+skinparam defaultFontSize 12
+skinparam wrapWidth 240
+skinparam package {
+  BackgroundColor #FFFFFF
+  BorderColor #777777
+}
+skinparam component {
+  BackgroundColor #FFFFFF
+  BorderColor #333333
+}
+skinparam database {
+  BackgroundColor #FFFFFF
+  BorderColor #333333
+}
+
+' ---------------------------------------------- the CSCI under view
+package "Health Monitoring (Platform) CSCI" as HM #EAF2FB {
+  component "Watchdog CSC" as WD
+  component "Health Monitor CSC" as HMON
+}
+
+' ---------------------------------------------- context only
+package "DataBase CSCI — RTOS half" as DBRT {
+  database "Parameter Database CSC" as PDB #F0F0F0
+}
+package "Scheduling CSCI" as SCHED {
+  component "CCSDS / PUS Dispatcher CSC" as CCSDS #F0F0F0
+}
+package "FDIR CSCI" as FDIR {
+  component "States CSC" as STATES #F0F0F0
+}
+package "AOCS CSCI" as AOCS {
+  component "Kalman Filter CSC" as FILTER #F0F0F0
+}
+package "I/O interfaces" as IFACE {
+  component "GPIO" as GPIO #F0F0F0
+  component "DDR (ECC)" as DDRIF #F0F0F0
+}
+package "Linux domain" as LINDOM {
+  component "Payload Software CSCI" as PAY #F0F0F0
+}
+package "Platform hardware" as PHW {
+  component "External Watchdog" as EXTWD #F0F0F0
+  component "DDR + ECC" as DDR #F0F0F0
+}
+
+' ---------------------------------------------- inside the CSCI
+HMON --> WD : HM task check-in — the kick\nis gated on all three
+
+' ---------------------------------------------- across its boundary
+HMON --> PDB : current values
+PDB --> HMON : periodic sample ->\nhousekeeping packet
+HMON <--> CCSDS : TC — housekeeping, limits, events /\nTM — class 1 events, class 2 housekeeping
+HMON --> STATES : alarm events,\nbounded queue
+FILTER --> WD : AOCS task check-in
+STATES --> WD : FDIR task check-in
+WD --> GPIO : watchdog kick,\nsensor enable
+DDRIF --> HMON : ECC error counters
+HMON ..> PAY : go / no-go, platform state
+GPIO --> EXTWD : kick
+DDR <--> DDRIF : DDR bus
+
+@enduml

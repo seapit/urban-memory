@@ -1,0 +1,54 @@
+@startuml
+' Payload Software CSCI — the CSCI in full, with every relation that crosses its boundary.
+' Everything drawn in grey is context: it is shown only far enough to say what
+' this CSCI talks to. The whole picture is in obc-csci-full.puml.
+' GENERATED from obc-csci-full.puml — edit that file, then re-run split.py.
+
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam nodesep 30
+skinparam ranksep 58
+skinparam defaultFontSize 12
+skinparam wrapWidth 240
+skinparam package {
+  BackgroundColor #FFFFFF
+  BorderColor #777777
+}
+skinparam component {
+  BackgroundColor #FFFFFF
+  BorderColor #333333
+}
+skinparam database {
+  BackgroundColor #FFFFFF
+  BorderColor #333333
+}
+
+' ---------------------------------------------- the CSCI under view
+component "Payload Software CSCI" as PAY #EAF2FB
+
+' ---------------------------------------------- context only
+package "Linux domain" as LINDOM {
+  component "Health Monitoring (Payload) CSCI" as PHM #F0F0F0
+}
+package "DataBase CSCI (Linux)" as DBLX {
+  component "Compression CSC" as COMP #F0F0F0
+}
+package "Scheduling CSCI" as SCHED {
+  component "CCSDS / PUS Dispatcher CSC" as CCSDS #F0F0F0
+}
+package "FDIR CSCI" as FDIR {
+  component "Power & Payload Control CSC" as PPC #F0F0F0
+}
+package "Health Monitoring (Platform) CSCI" as HM {
+  component "Health Monitor CSC" as HMON #F0F0F0
+}
+
+' ---------------------------------------------- across its boundary
+PHM --> PAY : payload health status
+PAY --> COMP : raw frames (class 4)
+CCSDS <..> PAY : TC / TM (classes 3, 4, 5)
+PPC ..> PAY : payload shutdown — no handshake,\nno payload veto
+HMON ..> PAY : go / no-go, platform state
+
+@enduml
