@@ -21,7 +21,7 @@ function(applyCommonTargetOptions TARGET_NAME TARGET_SCOPE)
   else()
     target_compile_options(${TARGET_NAME} ${TARGET_SCOPE} -O2)
   endif()
-=
+
   if(BUILD_TESTING)
     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
       target_compile_options(${TARGET_NAME} ${TARGET_SCOPE} --coverage)
