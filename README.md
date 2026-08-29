@@ -28,7 +28,7 @@ ctest --preset x86-clang
 ```
 
 ## Problem Statement Brief
-The OBC of an upcoming mission has a flight-ready embedded processor, compatible with Linux and FreeRTos. It is tasked with:
+The OBC of an upcoming mission has a flight-ready embedded processor, compatible with Linux and FreeRTOS. It is tasked with:
 1. Scheduling of commands and payload operations
 2. Real-time AOCS control
 3. Receiving ground commands and routing commands to subsystems
@@ -47,11 +47,11 @@ Clear diagrams and architectural explanations are encouraged.
 | 4 | **Power and Thermal budget out of scope.** | Unfortunately not an expert. |
 | 5 | Single embedded processor indicates one SoC | This impacts redundancy as it is the ONLY processor available, fault tolerance must be answered in Software. |
 | 6 | S-band ground link | 10 kbps - 10Mbps data throughput. |
-| 7 | VLEO Orbit | Should have a 90 minute orbit time, with some orbits seeing multiple landing stations, and some seeing zero |
+| 7 | VLEO Orbit | Should have a 90 minute orbit time, with some orbits seeing multiple ground stations, and some seeing zero |
 | 8 | Signal quality doesn't degrade | This is just to not dive into MODCODs and signal degradations, and reduce sources of error |
 | 9 | Imagery mission | Telecommunication satellites have different buffering requirements (packets can be dropped based on a Time To Live). |
 | 10 | Image rate | 50 MB per image, 100 images per hour (average). This helps estimate storage requirements (images alone generate 5GB/hour).  |
-| 11 | Reliability is prioritized | As much data as possible should be retained in order to transmit when landing stations are next in view |
+| 11 | Reliability is prioritized | As much data as possible should be retained in order to transmit when ground stations are next in view |
 | 12 | Platform criticality beats payload operations | Self-imposed, and it is the constraint that settles most of the arguments below see `[criticality]`. Where the two compete for CPU, memory, downlink bandwidth or verification effort, the platform wins. |
 | 13 | Ground contact is 1 pass per orbit, 6 minutes | 16 orbits/day gives 96 minutes of contact per day`[contacttime]`, which lets me identify if we are able to transmit buffered data `[compression]`. |
 | 14 | Required Telemetry generation rates of 32768/4096/1024 bits per second. | Gives a figure to estimate link budget/storage/buffering requirements `[s3]`. |
@@ -75,7 +75,7 @@ The real time domain is tasked with all the safety critical aspects: scheduling 
 
 #### Scheduling CSCI
 ![Scheduling CSCI](docs/scheduling_csci.svg)
-Owns the time-based command schedule. The schedule consists of both validating packets on receipt, and publishing the time until the next scheduled command. Schedules must also contain the time at which the next downlink (or all downlinks). The payload mission plan and downlink schedule must be stored in a non-volatile, radiation resistant medium (MRAM). Contains the following CSCS:
+Owns the time-based command schedule. The schedule consists of both validating packets on receipt, and publishing the time until the next scheduled command. Schedules must also contain the time at which the next downlink (or all downlinks). The payload mission plan and downlink schedule must be stored in a non-volatile, radiation resistant medium (MRAM). Contains the following CSCs:
 
 ##### CCSDS/PUS Dispatcher
 Dispatching is the notion of sending things out, I have just decided to also add "at the right time" to this. The Dispatcher is required to also schedule Telecommands (TC). A decision has been taken to use CCSDS PUS as their APIDs map easily to CSCIs. Requests for on-demand telemetry are also treated as Telecommands, to minimize the need for other dispatching mechanisms.
@@ -85,16 +85,16 @@ This owns the data transmissions, data is categorized in terms of criticality (1
 
 #### Telemetry and Telecommand (TTC) CSCI
 ![TTC CSCI](docs/ttc_csci.svg)
- Owns the connection with the ground. This CSCI corresponds to the transport layer. Contains the following CSCS:
+Owns the connection with the ground. This CSCI corresponds to the transport layer. Contains the following CSCs:
 
- ##### SpaceWire
- Carries the TTC transfer frames to/from the communications subsystem.
+##### SpaceWire
+Carries the TTC transfer frames to/from the communications subsystem.
 
 ##### Encryption
 Suggested for completion's sake. People have demonstrated the ability to already hack satellites, AES-256 is a supported encryption via CCSDS SDLS.
 
 #### Database (full)
-This CSCI is split across domains, and is responsible for maintaining the integrity of the database. The full contents of the Database CSCI (rather than just RTOS domain) are indicated. Contains the following CSCS:
+This CSCI is split across domains, and is responsible for maintaining the integrity of the database. The full contents of the Database CSCI (rather than just RTOS domain) are indicated. Contains the following CSCs:
 
 ##### Data Buffer
 Data Buffer exists to store all the different criticalities of data see `[criticality]`. The most critical data is stored in non-volatile, radiation resistance storage (MRAM).  Note: this section shows the whole CSCI, but in the Linux domain I have only added the subset of functionality that is run there.
@@ -103,13 +103,13 @@ Data Buffer exists to store all the different criticalities of data see `[critic
 Table of the current per-parameter latest. This may be stored in DDR with ECC. All data reads pass through this object to standardize interactions with the database in order to ensure reads/writes, timestamping and validity are enforced here rather than the telemetry producer.
 
 ##### Configurations
- Configuration parameters of sensors, devices, limits etc. Separated from the Parameter Database as these should only be updated via ground operator commands or updates.
+Configuration parameters of sensors, devices, limits etc. Separated from the Parameter Database as these should only be updated via ground operator commands or updates.
 
 ##### Compression (linux)
-Assumption of the S-Band antenna with my data-throughput estimations requires the use of compression to meet the throughputs possible during the times we see a landing station. see `[compression]`
+Assumption of the S-Band antenna with my data-throughput estimations requires the use of compression to meet the throughputs possible during the times we see a ground station. see `[compression]`
+
 ##### Metadata (linux)
 Storage location for image checksum metadata (class 3) and capture timestamp/positional data (class 5) - small sized data objects that may be transmitted if there are ground link issues.
-
 
 #### Health Monitoring (Platform) CSCI
 ![Health Monitoring (Platform) CSCI](docs/hms_plat_csci.svg)
@@ -121,10 +121,9 @@ Exists to kick an external watchdog.
 ##### Health monitor
 A very creative name, it exists to centralize the logic to monitor different telemetries and raise alarms.
 
-
 #### AOCS CSCI
 ![AOCS CSCI](docs/aocs_csci.svg)
-Real-time attitude control. The loop runs on its own period and pulls its sensor data rather than being invoked when a sample arrives. It relies on the ping-pong buffer to always get the latest data. Contains the following CSCS:
+Real-time attitude control. The loop runs on its own period and pulls its sensor data rather than being invoked when a sample arrives. It relies on the ping-pong buffer to always get the latest data. Contains the following CSCs:
 ##### Kalman Filter
 Within AOCS as the sensor readings should be filtered to ensure integrity of the decisions made. When no samples have arrived, or are stale, the samples are propagated rather than repeating the last measurement, bounded to a fixed number of intervals see `[staleness]`.
 
@@ -136,13 +135,15 @@ Motor commands out over CAN.
 
 #### Sensor Service CSCI
 ![Sensor Service CSCI](docs/sensor_csci.svg)
- Sensor acquisition, kept as its own CSCI so the rest of the RTOS domain does not know how the front end is implemented. Contains the following CSCS:
+Sensor acquisition, kept as its own CSCI so the rest of the RTOS domain does not know how the front end is implemented. Contains the following CSCs:
+
 ##### Sensor Polling
 A thin  shim over the sensor interfaces. This is just to potentially provide a valid platform (and make more money down the road) by putting a small emphasis on code-reuse. If sensor capture moves from hardware to software polling, or the other way, the change stops here and does not propagate.
 
 #### Fault Detection and Interrupt Recovery (FDIR) CSCI
 ![FDIR CSCI](docs/fdir_csci.svg)
- Final authority (within spacecraft) on operations (may be superseded by operators). Owns the spacecraft mode and is the centralized location for state transitions. Validates the Linux domain has correctly booted. When not in view of a landing station, is the final authority for platform decisions to prioritize orbit recovery and, platform integrity. Responsible for monitoring if the Linux domain has booted.
+Final authority (within spacecraft) on operations (may be superseded by operators). Owns the spacecraft mode and is the centralized location for state transitions. Validates the Linux domain has correctly booted. When not in view of a ground station, is the final authority for platform decisions to prioritize orbit recovery and, platform integrity. Responsible for monitoring if the Linux domain has booted.
+
 ##### Boot
 Responsible for monitoring the linux cores during boot. Failure to come alive is a transition to Recovery, which owns the retry logic.
 
@@ -153,31 +154,29 @@ The state machine for the satellite see `[operational_states]`. Owns the platfor
 Centralized location for power switching and shutting down the payload for recovery operations. Kept separate from States deliberately - States decide that a transition happens, this is what actually throws the switches, and I would rather those be two things than one. There is no graceful-stop handshake and no payload veto - a handshake is something that can hang.
 
 ### Linux Domain
-The linux domain is deliberately set to be simple and lightweight (and out of scope).
+The linux domain is deliberately set to be simple and lightweight (and out of scope). It contains the Payload Software CSCI (receiver for buffered payload operations, TM producer) and the Linux-side subset of the Database CSCI (Compression, Metadata).
 
 ![Linux Domain](docs/linux_domain.svg)
 #### Payload Software CSCI
 ![Payload Software CSCI](docs/payload_csci.svg)
- Produces Telemetry (TM), receives TCs from the dispatcher `[TTC]`. Compression and metadata generation run here, in the Linux domain, which is what keeps 120 GB/day (uncompresed) of imagery away from the safety-critical cores.
+Produces Telemetry (TM), receives TCs from the dispatcher `[TTC]`. Compression and metadata generation run here, in the Linux domain, which is what keeps 120 GB/day (uncompressed) of imagery away from the safety-critical cores.
 #### Health Monitoring (Payload) CSCI
 ![Health Monitoring (Payload) CSCI](docs/hms_pld_csci.svg)
- Separate from the Health Monitoring (Platform), this provides an easy way to separate payload by priority.  While reliability is prioritized, not all telemetry is equal. Payload TM is queued as priority 2 rather than priority 3 - payload data is droppable as a last resort, payload health must be higher priority so we can diagnose potential payload problem.
+Separate from the Health Monitoring (Platform), this provides an easy way to separate payload by priority.  While reliability is prioritized, not all telemetry is equal. Payload TM is queued as priority 2 rather than priority 3 - payload data is droppable as a last resort, payload health must be higher priority so we can diagnose potential payload problem.
 
 ### Database CSCO
 ![Database CSCI](docs/database_csci.svg)
 This CSCI is split across domains, and is responsible for maintaining the integrity of the database. In this domain we have the following CSCs.
 
 ##### Compression
-Assumption of the S-Band antenna with my data-throughput estimations requires the use of compression to meet the throughputs possible during the times we see a landing station. see `[compression]`
+Assumption of the S-Band antenna with my data-throughput estimations requires the use of compression to meet the throughputs possible during the times we see a ground station. see `[compression]`
 
 ##### Metadata
- Storage location for image checksum metadata (class 3) and capture timestamp/positional data (class 5) - small sized data objects that may be transmitted if there are ground link issues.
-
-It contains the Payload Software CSCI acting as a receiver for buffered payload operations and creates Telemetry (TM).
+Storage location for image checksum metadata (class 3) and capture timestamp/positional data (class 5) - small sized data objects that may be transmitted if there are ground link issues.
 
 ## Components
 
-There is no software bus, services inside the platform processor communicate via callbacks, across domain barriers we use a shared-memory buffer (CoTS exists for this).
+There is no software bus, services inside the platform processor communicate via callbacks, across domain barriers we use a shared-memory buffer (COTS exists for this).
 
 ### Data Model
 
@@ -208,7 +207,7 @@ path where the next value supersedes the last, and not fine for an anomaly repor
 | Sensor Polling to AOCS | Pull | Ping-pong (double) buffer. The producer overwrites the eldest entry and swaps the index atomically on completion. The control loop reads the active half on its own period. | Overwrite eldest sample on write, read last fully written. Producers never block, consumers never wait. |
 | Any service to TM | Pull | Services write their current values, Health Monitoring samples periodically to build the housekeeping packet. | Nothing, it is only sampling values rather than decision making or delivering. Parameters are all independent and the latest 'wins'. |
 | Health Monitoring to FDIR | Push | Callback into a bounded queue per consumer | Overflows raise event(s). Events (and commands) are never dropped without notification or feedback. |
-| TM producers to Ground | Push | Producers add to buffer, the downlink scheduler starts to transmit (and empty)  during a scheduled pass (or landing stage is visible). | Priority classes see `[criticality]` |
+| TM producers to Ground | Push | Producers add to buffer, the downlink scheduler starts to transmit (and empty)  during a scheduled pass (or ground station is visible). | Priority classes see `[criticality]` |
 | RTOS domain to Linux domain | Push | Shared memory with an interrupt to notify | Non-blocking on the RTOS side, a full or unserviced channel is a reported fault. see `[criticality]` |
 
 `[caveat2]`
@@ -235,7 +234,7 @@ The platform is safety-critical and the payload isn't.
 | 4 | Non-critical image regions (pixel data)| Transmitted after class 3. Droppable (when satellite in jeopardy), and it is the release valve that keeps the class 1, 2,3 guarantees honest. |
 | 5 | Non-critical image metadata (capture timestamp, positional data )| Transmitted after class 4, if link allows or is required. |
 
-In order to prioritize reliability and the reception of traffic, generated TM is queued for transmission and is not transmitted as soon as it is produced. Since we only see the landing station for a brief time during an orbit, the large majority of telemetry is generated without being able to be transmitted. Telemetry is stored rather than dropped (or transmitted immediately) because faults have a higher likelihood of happening when the satellite is not in view of a landing station. When this occurs, it's important to be able to in-orbit troubleshoot and determine causes, as such, telemetry retention ensures that the sequence of events is at least able to be traced to how it occured and why the fault records and telemetries are transmitted in priority vs payload data.
+In order to prioritize reliability and the reception of traffic, generated TM is queued for transmission and is not transmitted as soon as it is produced. Since we only see the ground station for a brief time during an orbit, the large majority of telemetry is generated without being able to be transmitted. Telemetry is stored rather than dropped (or transmitted immediately) because faults have a higher likelihood of happening when the satellite is not in view of a ground station. When this occurs, it's important to be able to in-orbit troubleshoot and determine causes, as such, telemetry retention ensures that the sequence of events is at least able to be traced to how it occurred and why the fault records and telemetries are transmitted in priority vs payload data.
 
 Splitting image data versus two types of metadata reflects what can be safely dropped. Checksums must be retained so that any image data which does arrive can be verified as uncorrupted, while image metadata regarding positioning can be inferred through received telemetry. While difficult it is not impossible, which is why the image itself is more valuable than its metadata — the metadata is the part that can still be recovered after the fact. Special care must be taken for payload storage, the Databases must be large enough to ensure that all the different classes of data may be retained for a reasonable amount of time before being dropped. A mission-wide level decision must be taken here.
 
@@ -362,4 +361,4 @@ Recovery from a failed Linux boot is a bounded ladder rather than an indefinite 
 | 4 | Health Monitoring | Health Monitoring CSCI | HMS, implemented |
 | 5 | Buffering payload data | DataBase CSCI | Databases/PingPongBuffer, Databases/TelemetryDB, Implemented |
 
-Demo coded in C++ using C++23 - as I am using it in my home projects with a fully self built build-system. I prioritise the use of self-made algorithms rather than Commercial off the Shelf (CotS) as I am prioritising my learning/improvement in design and coding.
+Demo coded in C++ using C++23 - as I am using it in my home projects with a fully self built build-system. I prioritise the use of self-made algorithms rather than Commercial off the Shelf (COTS) as I am prioritising my learning/improvement in design and coding.
