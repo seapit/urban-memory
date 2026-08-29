@@ -73,44 +73,105 @@ Clear diagrams and architectural explanations are encouraged.
 ### Real-Time Domain
 The real time domain is tasked with all the safety critical aspects: scheduling of commands and Payload operations, AOCS Control, Reception and Routing, Health Monitoring (Platform), this is to get the deterministic latency under a real-time operating system, and, isolate a full Linux userspace for the Payload. In this configuration, user-space linux applications would not be able to prevent the real-time aspects to starve or, in the event of having a corruption on a core, prevent regular execution of safety critical tasks.
 
-| CSCI | CSC | Description |
-|---|---|---|
-| Scheduling | - | Owns the time-based command schedule. The schedule consists of both validating packets on receipt, and publishing the time until the next scheduled command. Schedules must also contain the time at which the next downlink (or all downlinks). The payload mission plan and downlink schedule must be stored in a non-volatile, radiation resistant medium (MRAM) |
-| - | CCSDS/PUS Dispatcher | Dispatching is the notion of sending things out, I have just decided to also add "at the right time" to this. The Dispatcher is required to also schedule Telecommands (TC). A decision has been taken to use CCSDS PUS as their APIDs map easily to CSCIs. Requests for on-demand telemetry are also treated as Telecommands, to minimize the need for other dispatching mechanisms. |
-| - | Downlink Scheduler | This owns the data transmissions, data is categorized in terms of criticality (1/2/3/4/5) see `[data_criticality]` and transmits the buffered data accordingly. Responsible for transmitting the buffered platform and payload data and telemetries. |
-| Telemetry and Telecommand (TTC) | - | Owns the connection with the ground. This CSCI corresponds to the transport layer. |
-| - | SpaceWire | Carries the TTC transfer frames to/from the communications subsystem. |
-| - | Encryption | Suggested for completion's sake. People have demonstrated the ability to already hack satellites, AES-256 is a supported encryption via CCSDS SDLS. |
-| Database (full) | - | This CSCI is split across domains, and is responsible for maintaining the integrity of the database. |
-| - | Data Buffer | Data Buffer exists to store all the different criticalities of data see `[criticality]`. The most critical data is stored in non-volatile, radiation resistance storage (MRAM).  Note: this section shows the whole CSCI, but in the Linux domain I have only added the subset of functionality that is run there. |
-| - | Parameter Database | Table of the current per-parameter latest. This may be stored in DDR with ECC. All data reads pass through this object to standardize interactions with the database in order to ensure reads/writes, timestamping and validity are enforced here rather than the telemetry producer. |
-| - | Configurations | Configuration parameters of sensors, devices, limits etc. Separated from the Parameter Database as these should only be updated via ground operator commands or updates. |
-| - | Compression (linux) | Assumption of the S-Band antenna with my data-throughput estimations requires the use of compression to meet the throughputs possible during the times we see a landing station. see `[compression]` |
-| - | Metadata (linux) | Storage location for image checksum metadata (class 3) and capture timestamp/positional data (class 5) - small sized data objects that may be transmitted if there are ground link issues. |
-| Health Monitoring (Platform) | - | Responsible for raising alarms, and ensuring telemetry within required ranges. |
-| - | Watchdog | Exists to kick an external watchdog. |
-| - | Health Monitor | A very creative name, it exists to centralize the logic to monitor different telemetries and raise alarms. |
-| AOCS | - | Real-time attitude control. The loop runs on its own period and pulls its sensor data rather than being invoked when a sample arrives. It relies on the ping-pong buffer to always get the latest data|
-| - | Kalman Filter | Within AOCS as the sensor readings should be filtered to ensure integrity of the decisions made. When no samples have arrived, or are stale, the samples are propagated rather than repeating the last measurement, bounded to a fixed number of intervals see `[staleness]`. |
-| - | Satellite Orientation | Owns the satellite's orientation and its substates. Orientation substates exist under Operational. The FDIR state machine commands entry into Operational and specifies an initial orientation target, and AOCS then transitions to it and holds it without further instruction. |
-| - | Motor Controller | Motor commands out over CAN. |
-| Sensor Service | - | Sensor acquisition, kept as its own CSCI so the rest of the RTOS domain does not know how the front end is implemented. |
-| - | Sensor Polling | A thin  shim over the sensor interfaces. This is just to potentially provide a valid platform (and make more money down the road) by putting a small emphasis on code-reuse. If sensor capture moves from hardware to software polling, or the other way, the change stops here and does not propagate. |
-| Fault Detection and Interrupt Recovery | - | Final authority (within spacecraft) on operations (may be superseded by operators). Owns the spacecraft mode and is the centralized location for state transitions. Validates the Linux domain has correctly booted. When not in view of a landing station, is the final authority for platform decisions to prioritize orbit recovery and, platform integrity. Responsible for monitoring if the Linux domain has booted. |
-| - | Boot | Responsible for monitoring the linux cores during boot. Failure to come alive is a transition to Recovery, which owns the retry logic. |
-| - | States | The state machine for the satellite see `[operational_states]`. Owns the platform state and must be commanded to transition. When transitioning from one state to another, this CSCI is responsible for enacting the sequence that must be performed. This is a centralised area to hold all the logic regarding states, their transitions and criteria. |
-| - | Power and Payload Control | Centralized location for power switching and shutting down the payload for recovery operations. Kept separate from States deliberately - States decide that a transition happens, this is what actually throws the switches, and I would rather those be two things than one. There is no graceful-stop handshake and no payload veto - a handshake is something that can hang. |
+#### Scheduling CSCI
+![Scheduling CSCI](docs/scheduling_csci.svg)
+Owns the time-based command schedule. The schedule consists of both validating packets on receipt, and publishing the time until the next scheduled command. Schedules must also contain the time at which the next downlink (or all downlinks). The payload mission plan and downlink schedule must be stored in a non-volatile, radiation resistant medium (MRAM). Contains the following CSCS:
 
+##### CCSDS/PUS Dispatcher
+Dispatching is the notion of sending things out, I have just decided to also add "at the right time" to this. The Dispatcher is required to also schedule Telecommands (TC). A decision has been taken to use CCSDS PUS as their APIDs map easily to CSCIs. Requests for on-demand telemetry are also treated as Telecommands, to minimize the need for other dispatching mechanisms.
+
+##### Downlink Scheduler
+This owns the data transmissions, data is categorized in terms of criticality (1/2/3/4/5) see `[data_criticality]` and transmits the buffered data accordingly. Responsible for transmitting the buffered platform and payload data and telemetries.
+
+#### Telemetry and Telecommand (TTC) CSCI
+![TTC CSCI](docs/ttc_csci.svg)
+ Owns the connection with the ground. This CSCI corresponds to the transport layer. Contains the following CSCS:
+
+ ##### SpaceWire
+ Carries the TTC transfer frames to/from the communications subsystem.
+
+##### Encryption
+Suggested for completion's sake. People have demonstrated the ability to already hack satellites, AES-256 is a supported encryption via CCSDS SDLS.
+
+#### Database (full)
+This CSCI is split across domains, and is responsible for maintaining the integrity of the database. The full contents of the Database CSCI (rather than just RTOS domain) are indicated. Contains the following CSCS:
+
+##### Data Buffer
+Data Buffer exists to store all the different criticalities of data see `[criticality]`. The most critical data is stored in non-volatile, radiation resistance storage (MRAM).  Note: this section shows the whole CSCI, but in the Linux domain I have only added the subset of functionality that is run there.
+
+##### Parameter Database
+Table of the current per-parameter latest. This may be stored in DDR with ECC. All data reads pass through this object to standardize interactions with the database in order to ensure reads/writes, timestamping and validity are enforced here rather than the telemetry producer.
+
+##### Configurations
+ Configuration parameters of sensors, devices, limits etc. Separated from the Parameter Database as these should only be updated via ground operator commands or updates.
+
+##### Compression (linux)
+Assumption of the S-Band antenna with my data-throughput estimations requires the use of compression to meet the throughputs possible during the times we see a landing station. see `[compression]`
+##### Metadata (linux)
+Storage location for image checksum metadata (class 3) and capture timestamp/positional data (class 5) - small sized data objects that may be transmitted if there are ground link issues.
+
+
+#### Health Monitoring (Platform) CSCI
+![Health Monitoring (Platform) CSCI](docs/hms_plat_csci.svg)
+Responsible for raising alarms, and ensuring telemetry within required ranges.
+
+##### Watchdog
+Exists to kick an external watchdog.
+
+##### Health monitor
+A very creative name, it exists to centralize the logic to monitor different telemetries and raise alarms.
+
+
+#### AOCS CSCI
+![AOCS CSCI](docs/aocs_csci.svg)
+Real-time attitude control. The loop runs on its own period and pulls its sensor data rather than being invoked when a sample arrives. It relies on the ping-pong buffer to always get the latest data. Contains the following CSCS:
+##### Kalman Filter
+Within AOCS as the sensor readings should be filtered to ensure integrity of the decisions made. When no samples have arrived, or are stale, the samples are propagated rather than repeating the last measurement, bounded to a fixed number of intervals see `[staleness]`.
+
+##### Satellite Orientation
+Owns the satellite's orientation and its substates. Orientation substates exist under Operational. The FDIR state machine commands entry into Operational and specifies an initial orientation target, and AOCS then transitions to it and holds it without further instruction.
+
+##### Motor Controller
+Motor commands out over CAN.
+
+#### Sensor Service CSCI
+![Sensor Service CSCI](docs/sensor_csci.svg)
+ Sensor acquisition, kept as its own CSCI so the rest of the RTOS domain does not know how the front end is implemented. Contains the following CSCS:
+##### Sensor Polling
+A thin  shim over the sensor interfaces. This is just to potentially provide a valid platform (and make more money down the road) by putting a small emphasis on code-reuse. If sensor capture moves from hardware to software polling, or the other way, the change stops here and does not propagate.
+
+#### Fault Detection and Interrupt Recovery (FDIR) CSCI
+![FDIR CSCI](docs/fdir_csci.svg)
+ Final authority (within spacecraft) on operations (may be superseded by operators). Owns the spacecraft mode and is the centralized location for state transitions. Validates the Linux domain has correctly booted. When not in view of a landing station, is the final authority for platform decisions to prioritize orbit recovery and, platform integrity. Responsible for monitoring if the Linux domain has booted.
+##### Boot
+Responsible for monitoring the linux cores during boot. Failure to come alive is a transition to Recovery, which owns the retry logic.
+
+##### States
+The state machine for the satellite see `[operational_states]`. Owns the platform state and must be commanded to transition. When transitioning from one state to another, this CSCI is responsible for enacting the sequence that must be performed. This is a centralised area to hold all the logic regarding states, their transitions and criteria.
+
+##### Power and Payload Control
+Centralized location for power switching and shutting down the payload for recovery operations. Kept separate from States deliberately - States decide that a transition happens, this is what actually throws the switches, and I would rather those be two things than one. There is no graceful-stop handshake and no payload veto - a handshake is something that can hang.
 
 ### Linux Domain
 The linux domain is deliberately set to be simple and lightweight (and out of scope).
-| CSCI | CSC | Description |
-|---|---|---|
-| Payload Software  | - | Produces Telemetry (TM), receives TCs from the dispatcher `[TTC]`. Compression and metadata generation run here, in the Linux domain, which is what keeps 120 GB/day (uncompresed) of imagery away from the safety-critical cores. |
-| Health Monitoring (Payload) | - | Separate from the Health Monitoring (Platform), this provides an easy way to separate payload by priority.  While reliability is prioritized, not all telemetry is equal. Payload TM is queued as priority 2 rather than priority 3 - payload data is droppable as a last resort, payload health must be higher priority so we can diagnose potential payload problem. |
-| Database | - | This CSCI is split across domains, and is responsible for maintaining the integrity of the database. |
-| - | Compression | Assumption of the S-Band antenna with my data-throughput estimations requires the use of compression to meet the throughputs possible during the times we see a landing station. see `[compression]` |
-| - | Metadata | Storage location for image checksum metadata (class 3) and capture timestamp/positional data (class 5) - small sized data objects that may be transmitted if there are ground link issues. |
+
+![Linux Domain](docs/linux_domain.svg)
+#### Payload Software CSCI
+![Payload Software CSCI](docs/payload_csci.svg)
+ Produces Telemetry (TM), receives TCs from the dispatcher `[TTC]`. Compression and metadata generation run here, in the Linux domain, which is what keeps 120 GB/day (uncompresed) of imagery away from the safety-critical cores.
+#### Health Monitoring (Payload) CSCI
+![Health Monitoring (Payload) CSCI](docs/hms_pld_csci.svg)
+ Separate from the Health Monitoring (Platform), this provides an easy way to separate payload by priority.  While reliability is prioritized, not all telemetry is equal. Payload TM is queued as priority 2 rather than priority 3 - payload data is droppable as a last resort, payload health must be higher priority so we can diagnose potential payload problem.
+
+### Database CSCO
+![Database CSCI](docs/database_csci.svg)
+This CSCI is split across domains, and is responsible for maintaining the integrity of the database. In this domain we have the following CSCs.
+
+##### Compression
+Assumption of the S-Band antenna with my data-throughput estimations requires the use of compression to meet the throughputs possible during the times we see a landing station. see `[compression]`
+
+##### Metadata
+ Storage location for image checksum metadata (class 3) and capture timestamp/positional data (class 5) - small sized data objects that may be transmitted if there are ground link issues.
 
 It contains the Payload Software CSCI acting as a receiver for buffered payload operations and creates Telemetry (TM).
 
