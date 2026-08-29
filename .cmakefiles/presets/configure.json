@@ -1,0 +1,122 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "default",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "x86-clang",
+      "inherits": "default",
+      "displayName": "x86 · Clang · Debug",
+      "description": "Debug build for x86 using Clang.",
+      "binaryDir": "${sourceDir}/build/x86-clang/output",
+      "toolchainFile": "${fileDir}/../toolchains/x86-clang-toolchain.cmake"
+    },
+    {
+      "name": "x86-clang-release",
+      "inherits": "x86-clang",
+      "displayName": "x86 · Clang · Release",
+      "description": "Release build for x86 using Clang.",
+      "binaryDir": "${sourceDir}/build/x86-clang/output-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "x86-gcc",
+      "inherits": "default",
+      "displayName": "x86 · GCC · Debug",
+      "description": "Debug build for x86 using GCC.",
+      "binaryDir": "${sourceDir}/build/x86-gcc/output",
+      "toolchainFile": "${fileDir}/../toolchains/x86-gcc-toolchain.cmake"
+    },
+    {
+      "name": "x86-gcc-release",
+      "inherits": "x86-gcc",
+      "displayName": "x86 · GCC · Release",
+      "description": "Release build for x86 using GCC.",
+      "binaryDir": "${sourceDir}/build/x86-gcc/output-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "armv7a-clang",
+      "inherits": "default",
+      "displayName": "ARMv7-A · Clang · Debug",
+      "description": "Debug build for ARMv7-A using Clang.",
+      "binaryDir": "${sourceDir}/build/armv7a-clang/output",
+      "toolchainFile": "${fileDir}/../toolchains/armv7a-clang-toolchain.cmake"
+    },
+    {
+      "name": "armv7a-clang-release",
+      "inherits": "armv7a-clang",
+      "displayName": "ARMv7-A · Clang · Release",
+      "description": "Release build for ARMv7-A using Clang.",
+      "binaryDir": "${sourceDir}/build/armv7a-clang/output-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "armv7a-gcc",
+      "inherits": "default",
+      "displayName": "ARMv7-A · GCC · Debug",
+      "description": "Debug build for ARMv7-A using GCC.",
+      "binaryDir": "${sourceDir}/build/armv7a-gcc/output",
+      "toolchainFile": "${fileDir}/../toolchains/armv7a-gcc-toolchain.cmake"
+    },
+    {
+      "name": "armv7a-gcc-release",
+      "inherits": "armv7a-gcc",
+      "displayName": "ARMv7-A · GCC · Release",
+      "description": "Release build for ARMv7-A using GCC.",
+      "binaryDir": "${sourceDir}/build/armv7a-gcc/output-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "aarch64-clang",
+      "inherits": "default",
+      "displayName": "AArch64 · Clang · Debug",
+      "description": "Debug build for AArch64 using Clang.",
+      "binaryDir": "${sourceDir}/build/aarch64-clang/output",
+      "toolchainFile": "${fileDir}/../toolchains/aarch64-clang-toolchain.cmake"
+    },
+    {
+      "name": "aarch64-clang-release",
+      "inherits": "aarch64-clang",
+      "displayName": "AArch64 · Clang · Release",
+      "description": "Release build for AArch64 using Clang.",
+      "binaryDir": "${sourceDir}/build/aarch64-clang/output-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "aarch64-gcc",
+      "inherits": "default",
+      "displayName": "AArch64 · GCC · Debug",
+      "description": "Debug build for AArch64 using GCC.",
+      "binaryDir": "${sourceDir}/build/aarch64-gcc/output",
+      "toolchainFile": "${fileDir}/../toolchains/aarch64-gcc-toolchain.cmake"
+    },
+    {
+      "name": "aarch64-gcc-release",
+      "inherits": "aarch64-gcc",
+      "displayName": "AArch64 · GCC · Release",
+      "description": "Release build for AArch64 using GCC.",
+      "binaryDir": "${sourceDir}/build/aarch64-gcc/output-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ]
+}

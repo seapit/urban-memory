@@ -1,0 +1,95 @@
+{
+  "version": 6,
+  "include": ["configure.json"],
+  "buildPresets": [
+    {
+      "name": "build-default",
+      "hidden": true,
+      "verbose": false
+    },
+    {
+      "name": "x86-clang",
+      "inherits": "build-default",
+      "configurePreset": "x86-clang",
+      "displayName": "x86 · Clang · Debug",
+      "description": "Build the x86 · Clang · Debug configuration."
+    },
+    {
+      "name": "x86-clang-release",
+      "inherits": "build-default",
+      "configurePreset": "x86-clang-release",
+      "displayName": "x86 · Clang · Release",
+      "description": "Build the x86 · Clang · Release configuration."
+    },
+    {
+      "name": "x86-gcc",
+      "inherits": "build-default",
+      "configurePreset": "x86-gcc",
+      "displayName": "x86 · GCC · Debug",
+      "description": "Build the x86 · GCC · Debug configuration."
+    },
+    {
+      "name": "x86-gcc-release",
+      "inherits": "build-default",
+      "configurePreset": "x86-gcc-release",
+      "displayName": "x86 · GCC · Release",
+      "description": "Build the x86 · GCC · Release configuration."
+    },
+    {
+      "name": "armv7a-clang",
+      "inherits": "build-default",
+      "configurePreset": "armv7a-clang",
+      "displayName": "ARMv7-A · Clang · Debug",
+      "description": "Build the ARMv7-A · Clang · Debug configuration."
+    },
+    {
+      "name": "armv7a-clang-release",
+      "inherits": "build-default",
+      "configurePreset": "armv7a-clang-release",
+      "displayName": "ARMv7-A · Clang · Release",
+      "description": "Build the ARMv7-A · Clang · Release configuration."
+    },
+    {
+      "name": "armv7a-gcc",
+      "inherits": "build-default",
+      "configurePreset": "armv7a-gcc",
+      "displayName": "ARMv7-A · GCC · Debug",
+      "description": "Build the ARMv7-A · GCC · Debug configuration."
+    },
+    {
+      "name": "armv7a-gcc-release",
+      "inherits": "build-default",
+      "configurePreset": "armv7a-gcc-release",
+      "displayName": "ARMv7-A · GCC · Release",
+      "description": "Build the ARMv7-A · GCC · Release configuration."
+    },
+    {
+      "name": "aarch64-clang",
+      "inherits": "build-default",
+      "configurePreset": "aarch64-clang",
+      "displayName": "AArch64 · Clang · Debug",
+      "description": "Build the AArch64 · Clang · Debug configuration."
+    },
+    {
+      "name": "aarch64-clang-release",
+      "inherits": "build-default",
+      "configurePreset": "aarch64-clang-release",
+      "displayName": "AArch64 · Clang · Release",
+      "description": "Build the AArch64 · Clang · Release configuration."
+    },
+    {
+      "name": "aarch64-gcc",
+      "inherits": "build-default",
+      "configurePreset": "aarch64-gcc",
+      "displayName": "AArch64 · GCC · Debug",
+      "description": "Build the AArch64 · GCC · Debug configuration."
+    },
+    {
+      "name": "aarch64-gcc-release",
+      "inherits": "build-default",
+      "configurePreset": "aarch64-gcc-release",
+      "displayName": "AArch64 · GCC · Release",
+      "description": "Build the AArch64 · GCC · Release configuration."
+    }
+  ]
+}

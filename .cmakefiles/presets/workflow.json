@@ -1,0 +1,126 @@
+{
+  "version": 6,
+  "include": ["configure.json", "build.json", "test.json"],
+  "workflowPresets": [
+    {
+      "name": "x86-clang",
+      "displayName": "x86 · Clang · Debug",
+      "description": "Configure, build, and test x86 · Clang · Debug in one step.",
+      "steps": [
+        { "type": "configure", "name": "x86-clang" },
+        { "type": "build", "name": "x86-clang" },
+        { "type": "test", "name": "x86-clang" }
+      ]
+    },
+    {
+      "name": "x86-clang-release",
+      "displayName": "x86 · Clang · Release",
+      "description": "Configure, build, and test x86 · Clang · Release in one step.",
+      "steps": [
+        { "type": "configure", "name": "x86-clang-release" },
+        { "type": "build", "name": "x86-clang-release" },
+        { "type": "test", "name": "x86-clang-release" }
+      ]
+    },
+    {
+      "name": "x86-gcc",
+      "displayName": "x86 · GCC · Debug",
+      "description": "Configure, build, and test x86 · GCC · Debug in one step.",
+      "steps": [
+        { "type": "configure", "name": "x86-gcc" },
+        { "type": "build", "name": "x86-gcc" },
+        { "type": "test", "name": "x86-gcc" }
+      ]
+    },
+    {
+      "name": "x86-gcc-release",
+      "displayName": "x86 · GCC · Release",
+      "description": "Configure, build, and test x86 · GCC · Release in one step.",
+      "steps": [
+        { "type": "configure", "name": "x86-gcc-release" },
+        { "type": "build", "name": "x86-gcc-release" },
+        { "type": "test", "name": "x86-gcc-release" }
+      ]
+    },
+    {
+      "name": "armv7a-clang",
+      "displayName": "ARMv7-A · Clang · Debug",
+      "description": "Configure, build, and test ARMv7-A · Clang · Debug in one step.",
+      "steps": [
+        { "type": "configure", "name": "armv7a-clang" },
+        { "type": "build", "name": "armv7a-clang" },
+        { "type": "test", "name": "armv7a-clang" }
+      ]
+    },
+    {
+      "name": "armv7a-clang-release",
+      "displayName": "ARMv7-A · Clang · Release",
+      "description": "Configure, build, and test ARMv7-A · Clang · Release in one step.",
+      "steps": [
+        { "type": "configure", "name": "armv7a-clang-release" },
+        { "type": "build", "name": "armv7a-clang-release" },
+        { "type": "test", "name": "armv7a-clang-release" }
+      ]
+    },
+    {
+      "name": "armv7a-gcc",
+      "displayName": "ARMv7-A · GCC · Debug",
+      "description": "Configure, build, and test ARMv7-A · GCC · Debug in one step.",
+      "steps": [
+        { "type": "configure", "name": "armv7a-gcc" },
+        { "type": "build", "name": "armv7a-gcc" },
+        { "type": "test", "name": "armv7a-gcc" }
+      ]
+    },
+    {
+      "name": "armv7a-gcc-release",
+      "displayName": "ARMv7-A · GCC · Release",
+      "description": "Configure, build, and test ARMv7-A · GCC · Release in one step.",
+      "steps": [
+        { "type": "configure", "name": "armv7a-gcc-release" },
+        { "type": "build", "name": "armv7a-gcc-release" },
+        { "type": "test", "name": "armv7a-gcc-release" }
+      ]
+    },
+    {
+      "name": "aarch64-clang",
+      "displayName": "AArch64 · Clang · Debug",
+      "description": "Configure, build, and test AArch64 · Clang · Debug in one step.",
+      "steps": [
+        { "type": "configure", "name": "aarch64-clang" },
+        { "type": "build", "name": "aarch64-clang" },
+        { "type": "test", "name": "aarch64-clang" }
+      ]
+    },
+    {
+      "name": "aarch64-clang-release",
+      "displayName": "AArch64 · Clang · Release",
+      "description": "Configure, build, and test AArch64 · Clang · Release in one step.",
+      "steps": [
+        { "type": "configure", "name": "aarch64-clang-release" },
+        { "type": "build", "name": "aarch64-clang-release" },
+        { "type": "test", "name": "aarch64-clang-release" }
+      ]
+    },
+    {
+      "name": "aarch64-gcc",
+      "displayName": "AArch64 · GCC · Debug",
+      "description": "Configure, build, and test AArch64 · GCC · Debug in one step.",
+      "steps": [
+        { "type": "configure", "name": "aarch64-gcc" },
+        { "type": "build", "name": "aarch64-gcc" },
+        { "type": "test", "name": "aarch64-gcc" }
+      ]
+    },
+    {
+      "name": "aarch64-gcc-release",
+      "displayName": "AArch64 · GCC · Release",
+      "description": "Configure, build, and test AArch64 · GCC · Release in one step.",
+      "steps": [
+        { "type": "configure", "name": "aarch64-gcc-release" },
+        { "type": "build", "name": "aarch64-gcc-release" },
+        { "type": "test", "name": "aarch64-gcc-release" }
+      ]
+    }
+  ]
+}

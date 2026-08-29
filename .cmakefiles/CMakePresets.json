@@ -1,0 +1,14 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 25
+  },
+  "include": [
+    "presets/configure.json",
+    "presets/build.json",
+    "presets/test.json",
+    "presets/package.json",
+    "presets/workflow.json"
+  ]
+}
