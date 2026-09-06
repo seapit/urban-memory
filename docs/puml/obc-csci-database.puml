@@ -62,6 +62,7 @@ package "I/O interfaces" as IFACE {
 }
 package "Linux domain" as LINDOM {
   component "Payload Software CSCI" as PAY #F0F0F0
+  component "Health Monitoring (Payload) CSCI" as PHM #F0F0F0
 }
 package "Platform hardware" as PHW {
   component "DDR + ECC" as DDR #F0F0F0
@@ -72,12 +73,15 @@ component "RTOS domain" as RTOSDOM #F0F0F0
 COMP --> META : checksums (3),\ncapture time and position (5)
 
 ' ---------------------------------------------- across its boundary
-CCSDS --> DBUF : TM from every producer,\nqueued by class
+FILTER --> DBUF : TM — attitude solution
+HMON --> DBUF : TM — class 1 events,\nclass 2 housekeeping
+PHM ..> DBUF : payload housekeeping TM —\nqueued as class 2, not class 3
 DLSCHED --> DBUF : drain request\n(a scheduled command)
 DBUF --> DLSCHED : queued TM,\nhighest class first
+CCSDS --> CFG : TC — configuration and\nlimit updates from ground
 CFG --> STATES : transition table,\nboot counters
 CFG --> FILTER : gains, limits,\npropagation bound
-HMON --> PDB : current values
+CFG --> HMON : configurations
 PDB --> HMON : periodic sample ->\nhousekeeping packet
 FILTER --> PDB : attitude solution
 POLL --> PDB : sensor samples

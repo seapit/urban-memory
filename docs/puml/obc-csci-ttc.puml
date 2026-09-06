@@ -49,7 +49,7 @@ SPW <--> ENC : TC in (encrypted) /\nTM frames out
 
 ' ---------------------------------------------- across its boundary
 SPWIF <--> SPW : SpaceWire link
-ENC <--> CCSDS : TC in (decrypted) /\nTM frames out
+ENC --> CCSDS : TC in (decrypted)
 DLSCHED --> ENC : downlink stream,\ntransmitted by class
 COD <--> SPWIF : TM / TC transfer frames
 TXRX <--> COD : baseband

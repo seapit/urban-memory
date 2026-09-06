@@ -36,18 +36,18 @@ package "TTC CSCI" as TTC {
 }
 package "DataBase CSCI — RTOS half" as DBRT {
   database "Data Buffer CSC" as DBUF #F0F0F0
+  database "Configurations CSC" as CFG #F0F0F0
 }
 package "Non-volatile & mass storage" as STORE {
   database "MRAM" as MRAM #F0F0F0
 }
+package "FDIR CSCI" as FDIR {
+  component "States CSC" as STATES #F0F0F0
+}
 package "Health Monitoring (Platform) CSCI" as HM {
   component "Health Monitor CSC" as HMON #F0F0F0
 }
-package "AOCS CSCI" as AOCS {
-  component "Kalman Filter CSC" as FILTER #F0F0F0
-}
 package "Linux domain" as LINDOM {
-  component "Health Monitoring (Payload) CSCI" as PHM #F0F0F0
   component "Payload Software CSCI" as PAY #F0F0F0
 }
 package "I/O interfaces" as IFACE {
@@ -56,16 +56,15 @@ package "I/O interfaces" as IFACE {
 component "RTOS domain" as RTOSDOM #F0F0F0
 
 ' ---------------------------------------------- across its boundary
-ENC <--> CCSDS : TC in (decrypted) /\nTM frames out
+ENC --> CCSDS : TC in (decrypted)
 DLSCHED --> ENC : downlink stream,\ntransmitted by class
-CCSDS --> DBUF : TM from every producer,\nqueued by class
 DLSCHED --> DBUF : drain request\n(a scheduled command)
 DBUF --> DLSCHED : queued TM,\nhighest class first
 CCSDS <--> MRAM : command schedule and\nmission plan are MRAM-resident
-HMON <--> CCSDS : TC — housekeeping, limits, events /\nTM — class 1 events, class 2 housekeeping
-FILTER --> CCSDS : TM — attitude solution
-PHM ..> CCSDS : payload housekeeping TM —\nqueued as class 2, not class 3
-CCSDS <..> PAY : TC / TM (classes 3, 4, 5)
+CCSDS --> CFG : TC — configuration and\nlimit updates from ground
+CCSDS --> STATES : TC — commanded transitions,\nground outranks FDIR
+CCSDS --> HMON : TC — housekeeping, events
+CCSDS ..> PAY : TC — payload operations
 MRAM <--> QSPI : MRAM is reached over QSPI
 QSPI --> RTOSDOM : boot images — primary ->\nsecondary -> golden, then Platform Only
 

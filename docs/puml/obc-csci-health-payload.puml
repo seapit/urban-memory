@@ -31,12 +31,12 @@ component "Health Monitoring (Payload) CSCI" as PHM #EAF2FB
 package "Linux domain" as LINDOM {
   component "Payload Software CSCI" as PAY #F0F0F0
 }
-package "Scheduling CSCI" as SCHED {
-  component "CCSDS / PUS Dispatcher CSC" as CCSDS #F0F0F0
+package "DataBase CSCI — RTOS half" as DBRT {
+  database "Data Buffer CSC" as DBUF #F0F0F0
 }
 
 ' ---------------------------------------------- across its boundary
-PHM --> PAY : payload health status
-PHM ..> CCSDS : payload housekeeping TM —\nqueued as class 2, not class 3
+PAY --> PHM : payload health status
+PHM ..> DBUF : payload TM
 
 @enduml

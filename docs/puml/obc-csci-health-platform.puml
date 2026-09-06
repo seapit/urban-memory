@@ -32,6 +32,8 @@ package "Health Monitoring (Platform) CSCI" as HM #EAF2FB {
 
 ' ---------------------------------------------- context only
 package "DataBase CSCI — RTOS half" as DBRT {
+  database "Data Buffer CSC" as DBUF #F0F0F0
+  database "Configurations CSC" as CFG #F0F0F0
   database "Parameter Database CSC" as PDB #F0F0F0
 }
 package "Scheduling CSCI" as SCHED {
@@ -59,9 +61,10 @@ package "Platform hardware" as PHW {
 HMON --> WD : HM task check-in — the kick\nis gated on all three
 
 ' ---------------------------------------------- across its boundary
-HMON --> PDB : current values
+CFG --> HMON : configurations
 PDB --> HMON : periodic sample ->\nhousekeeping packet
-HMON <--> CCSDS : TC — housekeeping, limits, events /\nTM — class 1 events, class 2 housekeeping
+CCSDS --> HMON : TC — housekeeping, events
+HMON --> DBUF : TM — class 1 events,\nclass 2 housekeeping
 HMON --> STATES : alarm events,\nbounded queue
 FILTER --> WD : AOCS task check-in
 STATES --> WD : FDIR task check-in

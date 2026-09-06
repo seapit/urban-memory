@@ -33,6 +33,7 @@ package "AOCS CSCI" as AOCS #EAF2FB {
 
 ' ---------------------------------------------- context only
 package "DataBase CSCI — RTOS half" as DBRT {
+  database "Data Buffer CSC" as DBUF #F0F0F0
   database "Configurations CSC" as CFG #F0F0F0
   database "Parameter Database CSC" as PDB #F0F0F0
 }
@@ -47,9 +48,6 @@ package "Sensor Service CSCI" as SENS {
 }
 package "I/O interfaces" as IFACE {
   component "CAN" as CAN #F0F0F0
-}
-package "Scheduling CSCI" as SCHED {
-  component "CCSDS / PUS Dispatcher CSC" as CCSDS #F0F0F0
 }
 package "DataBase CSCI (Linux)" as DBLX {
   component "MetaData CSC" as META #F0F0F0
@@ -69,7 +67,7 @@ FILTER --> WD : AOCS task check-in
 STATES --> SATORIENT : Recovery entry and the\ninitial orientation target
 POLL --> FILTER : sensor samples — the AOCS loop\npulls them on its own period
 MOT --> CAN : motor commands
-FILTER --> CCSDS : TM — attitude solution
+FILTER --> DBUF : TM — attitude solution
 FILTER ..> META : attitude / geolocation at capture
 CAN --> ACT : actuator commands
 

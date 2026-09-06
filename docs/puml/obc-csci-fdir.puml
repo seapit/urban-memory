@@ -35,6 +35,9 @@ package "FDIR CSCI" as FDIR #EAF2FB {
 package "DataBase CSCI — RTOS half" as DBRT {
   database "Configurations CSC" as CFG #F0F0F0
 }
+package "Scheduling CSCI" as SCHED {
+  component "CCSDS / PUS Dispatcher CSC" as CCSDS #F0F0F0
+}
 package "Health Monitoring (Platform) CSCI" as HM {
   component "Health Monitor CSC" as HMON #F0F0F0
   component "Watchdog CSC" as WD #F0F0F0
@@ -58,6 +61,7 @@ STATES --> PPC : transition actions
 
 ' ---------------------------------------------- across its boundary
 CFG --> STATES : transition table,\nboot counters
+CCSDS --> STATES : TC — commanded transitions,\nground outranks FDIR
 HMON --> STATES : alarm events,\nbounded queue
 STATES --> WD : FDIR task check-in
 PPC --> PDUIF : power switching authority

@@ -45,9 +45,9 @@ package "Health Monitoring (Platform) CSCI" as HM {
 }
 
 ' ---------------------------------------------- across its boundary
-PHM --> PAY : payload health status
+PAY --> PHM : payload health status
 PAY --> COMP : raw frames (class 4)
-CCSDS <..> PAY : TC / TM (classes 3, 4, 5)
+CCSDS ..> PAY : TC — payload operations
 PPC ..> PAY : payload shutdown — no handshake,\nno payload veto
 HMON ..> PAY : go / no-go, platform state
 
