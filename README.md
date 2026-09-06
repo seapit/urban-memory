@@ -159,9 +159,11 @@ The linux domain is deliberately set to be simple and lightweight (and out of sc
 ![Linux Domain](docs/linux_domain.svg)
 #### Payload Software CSCI
 ![Payload Software CSCI](docs/payload_csci.svg)
+
 Produces Telemetry (TM), receives TCs from the dispatcher `[TTC]`. Compression and metadata generation run here, in the Linux domain, which is what keeps 120 GB/day (uncompressed) of imagery away from the safety-critical cores.
 #### Health Monitoring (Payload) CSCI
 ![Health Monitoring (Payload) CSCI](docs/hms_pld_csci.svg)
+
 Separate from the Health Monitoring (Platform), this provides an easy way to separate payload by priority.  While reliability is prioritized, not all telemetry is equal. Payload TM is queued as priority 2 rather than priority 3 - payload data is droppable as a last resort, payload health must be higher priority so we can diagnose potential payload problem.
 
 ### Database CSCI
