@@ -320,25 +320,25 @@ Compression ratio = 120 GB / 6.85 GB ≈ 17.5:1
 `[TTC]` TC arrives over SpaceWire, through the Encryption CSC if it is fitted, and is routed by the
 dispatcher on its PUS service. TM goes back out the same way.
 
-| Interface | Required for | Owning software | Status |
-|---|---|---|---|
-| SpaceWire | Ground link to the communications subsystem | TTC / SpaceWire CSC | Specified |
-| CAN | AOCS actuator commands | AOCS / Motor Controller | Specified, variant TBC |
-| SPI | Sensor acquisition Magnetometers, temperature sensors, Star tracker, GPS receiver |Sensor Polling, via the front end | Specified |
-| GPIO | Watchdog kick, sensor enable/disable | Health Monitoring / Watchdog | Specified |
-| QSPI | MRAM access, boot | Platform | Specified |
-| DDR (ECC) | Working memory both domains, and the Parameter Database current values | Database / Parameter Database. ECC error counters exposed to Health Monitoring | Specified |
-| MRAM | Non-volatile store - configuration, persistence state, boot image | Platform | Specified |
-| Commandable Power Delivery Unit | FDIR's power switching authority | FDIR / Power and Payload Control | Required, not yet specified |
+| Interface | Required for | Owning software |
+|---|---|---|
+| SpaceWire | Ground link to the communications subsystem | TTC / SpaceWire CSC |
+| CAN | AOCS actuator commands | AOCS / Motor Controller |
+| SPI | Sensor acquisition Magnetometers, temperature sensors, Star tracker, GPS receiver |Sensor Polling, via the front end |
+| GPIO | Watchdog kick, sensor enable/disable | Health Monitoring / Watchdog |
+| QSPI | MRAM access, boot | Platform |
+| DDR (ECC) | Working memory both domains, and the Parameter Database current values | Database / Parameter Database. ECC error counters exposed to Health Monitoring |
+| MRAM | Non-volatile store - configuration, persistence state, boot image | Platform |
+| Commandable Power Delivery Unit | FDIR power switching  | FDIR (Power and Payload Control) |
 | JTAG | Debug | - | Development only |
 
 ### Memory
-| Store | Holds | Sizing driver | Estimate |
+| Store | Holds | Requirement explanation | Estimate |
 |---|---|---|---|
-| DDR, Linux domain | Kernel, rootfs, payload software and its working set | The payload's own requirement, a general purpose userspace is the floor | A few GB, payload-driven, TBD |
-| DDR, RTOS domain | FreeRTOS working set, task stacks, bounded queues, Parameter Database current values, shared-memory buffers | Task count times stack, plus queue depths. The current-value table is small - a few hundred parameters of a few words each is tens of KB | 1 GB |
-| MRAM | Platform boot images (Primary, Secondary, and Golden), configuration, persistence state, the command schedule | Dominated by the FreeRTOS image, tripled across the primary, secondary, and golden copies | See below |
-| Mass memory | Downlink queue backing store | The queue calculation, derived from the image rate and the contact schedule | About 4 GB covers a 12 hour outage with everything compressed at 18:1. 1-2 GB covers the realistic 2-4 orbit case |
+| DDR, Linux domain | Kernel, rootfs, payload software and its working data | The payload's own requirements | A few GB, TBD |
+| DDR, RTOS domain | FreeRTOS working data, task stacks, bounded queues, Parameter Database current values, shared-memory buffers | Task count times stack, plus queue depths. The current-value table is small - a few hundred parameters of a few words each is tens of KB | 1 GB |
+| MRAM | Platform boot images (Primary, Secondary, and Golden), configuration, persistence state, the command schedule | Dominated by the boot images, tripled across the primary, secondary, and golden copies | See below |
+| Mass memory | Downlink data store | The size calculation, derived from the image rate and the contact schedule | About 4 GB covers a 12 hour outage with everything compressed at 18:1. 1-2 GB covers the realistic 2-4 orbit case |
 
 Note: MRAM is known to be very expensive but the trade-off of being non-volatile and radiation hardened are worthwhile tradeoffs. Some extra calculations must be made to ensure all 3 boot-image copies (Primary / Secondary / Golden) fit on MRAM.
 
