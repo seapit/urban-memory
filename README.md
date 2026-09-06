@@ -164,7 +164,7 @@ Produces Telemetry (TM), receives TCs from the dispatcher `[TTC]`. Compression a
 ![Health Monitoring (Payload) CSCI](docs/hms_pld_csci.svg)
 Separate from the Health Monitoring (Platform), this provides an easy way to separate payload by priority.  While reliability is prioritized, not all telemetry is equal. Payload TM is queued as priority 2 rather than priority 3 - payload data is droppable as a last resort, payload health must be higher priority so we can diagnose potential payload problem.
 
-### Database CSCO
+### Database CSCI
 ![Database CSCI](docs/database_csci.svg)
 This CSCI is split across domains, and is responsible for maintaining the integrity of the database. In this domain we have the following CSCs.
 
@@ -337,7 +337,7 @@ dispatcher on its PUS service. TM goes back out the same way.
 |---|---|---|---|
 | DDR, Linux domain | Kernel, rootfs, payload software and its working data | The payload's own requirements | A few GB, TBD |
 | DDR, RTOS domain | FreeRTOS working data, task stacks, bounded queues, Parameter Database current values, shared-memory buffers | Task count times stack, plus queue depths. The current-value table is small - a few hundred parameters of a few words each is tens of KB | 1 GB |
-| MRAM | Platform boot images (Primary, Secondary, and Golden), configuration, persistence state, the command schedule | Dominated by the boot images, tripled across the primary, secondary, and golden copies | See below |
+| MRAM | Payload boot images (Primary, Secondary, and Golden), configuration, persistence state, the command schedule | Dominated by the boot images, tripled across the primary, secondary, and golden copies | See below |
 | Mass memory | Downlink data store | The size calculation, derived from the image rate and the contact schedule | About 4 GB covers a 12 hour outage with everything compressed at 18:1. 1-2 GB covers the realistic 2-4 orbit case |
 
 Note: MRAM is known to be very expensive but the trade-off of being non-volatile and radiation hardened are worthwhile tradeoffs. Some extra calculations must be made to ensure all 3 boot-image copies (Primary / Secondary / Golden) fit on MRAM.
