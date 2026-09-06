@@ -292,7 +292,7 @@ From the assumptions, we can derive 96 minutes of contact per day. In the S-band
 
 | S-band rate | Capacity/day | Class 1+2 share | Payload left | Required ratio |
 |---|---|---|---|---|
-| 10 Mbps | 7.2 GB | 4.9% | 6.85 GB/day | approximately 17:1 |
+| 10 Mbps | 7.2 GB | 4.9% | 6.85 GB/day | approximately 18:1 |
 
 ### Supporting calculations:
 
@@ -310,7 +310,7 @@ Compression ratio = 120 GB / 6.85 GB ≈ 17.5:1
 
 | Link condition | Rate mode | What is transmitted |
 |---|---|---|
-| 10 Mbps, nominal pass | High, 32 768 bps | Class 1, 2, 3, 4, 5 at 17:1 |
+| 10 Mbps, nominal pass | High, 32 768 bps | Class 1, 2, 3, 4, 5 at 18:1 |
 | approximately 1 Mbps, degraded | Medium, 4096 bps | Class 1, 2, 3. 4 and 5 deferred to the next good pass |
 | 100 kbps or below, marginal | Low, 1024 bps | Class 1 and fragmented class 2 only |
 
@@ -338,7 +338,7 @@ dispatcher on its PUS service. TM goes back out the same way.
 | DDR, Linux domain | Kernel, rootfs, payload software and its working set | The payload's own requirement, a general purpose userspace is the floor | A few GB, payload-driven, TBD |
 | DDR, RTOS domain | FreeRTOS working set, task stacks, bounded queues, Parameter Database current values, shared-memory buffers | Task count times stack, plus queue depths. The current-value table is small - a few hundred parameters of a few words each is tens of KB | 1 GB |
 | MRAM | Platform boot images (Primary, Secondary, and Golden), configuration, persistence state, the command schedule | Dominated by the FreeRTOS image, tripled across the primary, secondary, and golden copies | See below |
-| Mass memory | Downlink queue backing store | The queue calculation, derived from the image rate and the contact schedule | About 4 GB covers a 12 hour outage with everything compressed at 17:1. 1-2 GB covers the realistic 2-4 orbit case |
+| Mass memory | Downlink queue backing store | The queue calculation, derived from the image rate and the contact schedule | About 4 GB covers a 12 hour outage with everything compressed at 18:1. 1-2 GB covers the realistic 2-4 orbit case |
 
 Note: MRAM is known to be very expensive but the trade-off of being non-volatile and radiation hardened are worthwhile tradeoffs. Some extra calculations must be made to ensure all 3 boot-image copies (Primary / Secondary / Golden) fit on MRAM.
 
