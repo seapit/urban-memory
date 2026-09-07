@@ -61,8 +61,8 @@ DLSCHED --> ENC : downlink stream,\ntransmitted by class
 DLSCHED --> DBUF : drain request\n(a scheduled command)
 DBUF --> DLSCHED : queued TM,\nhighest class first
 CCSDS <--> MRAM : command schedule and\nmission plan are MRAM-resident
-CCSDS --> CFG : TC — configuration and\nlimit updates from ground
-CCSDS --> STATES : TC — commanded transitions,\nground outranks FDIR
+CCSDS --> CFG : TC — configuration updates
+CCSDS --> STATES : TC — commanded transitions
 CCSDS --> HMON : TC — housekeeping, events
 CCSDS ..> PAY : TC — payload operations
 MRAM <--> QSPI : MRAM is reached over QSPI

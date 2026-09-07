@@ -75,10 +75,10 @@ COMP --> META : checksums (3),\ncapture time and position (5)
 ' ---------------------------------------------- across its boundary
 FILTER --> DBUF : TM — attitude solution
 HMON --> DBUF : TM — class 1 events,\nclass 2 housekeeping
-PHM ..> DBUF : payload housekeeping TM —\nqueued as class 2, not class 3
+PHM ..> DBUF : payload TM
 DLSCHED --> DBUF : drain request\n(a scheduled command)
 DBUF --> DLSCHED : queued TM,\nhighest class first
-CCSDS --> CFG : TC — configuration and\nlimit updates from ground
+CCSDS --> CFG : TC — configuration updates
 CFG --> STATES : transition table,\nboot counters
 CFG --> FILTER : gains, limits,\npropagation bound
 CFG --> HMON : configurations

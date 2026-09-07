@@ -61,7 +61,7 @@ STATES --> PPC : transition actions
 
 ' ---------------------------------------------- across its boundary
 CFG --> STATES : transition table,\nboot counters
-CCSDS --> STATES : TC — commanded transitions,\nground outranks FDIR
+CCSDS --> STATES : TC — commanded transitions
 HMON --> STATES : alarm events,\nbounded queue
 STATES --> WD : FDIR task check-in
 PPC --> PDUIF : power switching authority
