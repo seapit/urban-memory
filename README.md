@@ -101,7 +101,7 @@ This CSCI is split across domains, and is responsible for maintaining the integr
 Data Buffer exists to store all the different criticalities of data see `[criticality]`. The most critical data is stored in non-volatile, radiation resistance storage (MRAM). It also holds the ping-pong buffer for critical items `[caveat2]`, sensor samples land here and the AOCS loop pulls from the ping-pong buffer during its own task execution ensuring the latest sample is always taken.  Note: this section shows the whole CSCI, but in the Linux domain I have only added the subset of functionality that is run there.
 
 ##### Parameter Database
-Table of the current per-parameter latest. This may be stored in DDR with ECC. All data reads pass through this object to standardize interactions with the database in order to ensure reads/writes, timestamping and validity are enforced here rather than the telemetry producer.
+Table of the current per-parameter latest samples. This may be stored in DDR with ECC. TM data reads pass through this object to standardize interactions with the database in order to ensure reads/writes, timestamping and validity are enforced here rather than the telemetry producer.
 
 ##### Configurations
 Configuration parameters of sensors, devices, limits etc. Separated from the Parameter Database as these should only be updated via ground operator commands or updates.
@@ -162,12 +162,13 @@ The linux domain is deliberately set to be simple and lightweight (and out of sc
 ![Payload Software CSCI](docs/payload_csci.svg)
 
 Produces Telemetry (TM), receives TCs from the dispatcher `[TTC]`. Compression and metadata generation run here, in the Linux domain, which is what keeps 120 GB/day (uncompressed) of imagery away from the safety-critical cores.
+
 #### Health Monitoring (Payload) CSCI
 ![Health Monitoring (Payload) CSCI](docs/hms_pld_csci.svg)
 
 Separate from the Health Monitoring (Platform), this provides an easy way to separate payload by priority.  While reliability is prioritized, not all telemetry is equal. Payload TM is queued as priority 2 rather than priority 3 - payload data is droppable as a last resort, payload health must be higher priority so we can diagnose potential payload problems.
 
-### Database CSCI
+#### Database CSCI
 ![Database CSCI](docs/database_csci.svg)
 This CSCI is split across domains, and is responsible for maintaining the integrity of the database. In this domain we have the following CSCs.
 
