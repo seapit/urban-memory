@@ -98,7 +98,7 @@ Suggested for completion's sake. People have demonstrated the ability to already
 This CSCI is split across domains, and is responsible for maintaining the integrity of the database. The full contents of the Database CSCI (rather than just RTOS domain) are indicated. Contains the following CSCs:
 
 ##### Data Buffer
-Data Buffer exists to store all the different criticalities of data see `[criticality]`. The most critical data is stored in non-volatile, radiation resistance storage (MRAM).  Note: this section shows the whole CSCI, but in the Linux domain I have only added the subset of functionality that is run there.
+Data Buffer exists to store all the different criticalities of data see `[criticality]`. The most critical data is stored in non-volatile, radiation resistance storage (MRAM). It also holds the ping-pong buffer for critical items `[caveat2]`, sensor samples land here and the AOCS loop pulls from the ping-pong buffer during its own task execution ensuring the latest sample is always taken.  Note: this section shows the whole CSCI, but in the Linux domain I have only added the subset of functionality that is run there.
 
 ##### Parameter Database
 Table of the current per-parameter latest. This may be stored in DDR with ECC. All data reads pass through this object to standardize interactions with the database in order to ensure reads/writes, timestamping and validity are enforced here rather than the telemetry producer.
