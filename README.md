@@ -85,6 +85,7 @@ This owns the data transmissions, data is categorized in terms of criticality (1
 
 #### Telemetry and Telecommand (TTC) CSCI
 ![TTC CSCI](docs/ttc_csci.svg)
+
 Owns the connection with the ground. This CSCI corresponds to the transport layer. Contains the following CSCs:
 
 ##### SpaceWire
@@ -151,7 +152,7 @@ Responsible for monitoring the linux cores during boot. Failure to come alive is
 The state machine for the satellite see `[operational_states]`. Owns the platform state and must be commanded to transition. When transitioning from one state to another, this CSCI is responsible for enacting the sequence that must be performed. This is a centralised area to hold all the logic regarding states, their transitions and criteria.
 
 ##### Power and Payload Control
-Centralized location for power switching and shutting down the payload for recovery operations. Kept separate from States deliberately - States decide that a transition happens, this is what actually throws the switches, and I would rather those be two things than one. There is no graceful-stop handshake and no payload veto - a handshake is something that can hang.
+Centralized location for power switching and shutting down the payload for recovery operations. Kept separate from States deliberately - States decide that a transition happens, this is an arm that performs some actions required for transitions. For clear separation of responsibilities, I would rather those be two things than one. The payload does not have the autority to overrrule anything.
 
 ### Linux Domain
 The linux domain is deliberately set to be simple and lightweight (and out of scope). It contains the Payload Software CSCI (receiver for buffered payload operations, TM producer) and the Linux-side subset of the Database CSCI (Compression, Metadata).
@@ -164,7 +165,7 @@ Produces Telemetry (TM), receives TCs from the dispatcher `[TTC]`. Compression a
 #### Health Monitoring (Payload) CSCI
 ![Health Monitoring (Payload) CSCI](docs/hms_pld_csci.svg)
 
-Separate from the Health Monitoring (Platform), this provides an easy way to separate payload by priority.  While reliability is prioritized, not all telemetry is equal. Payload TM is queued as priority 2 rather than priority 3 - payload data is droppable as a last resort, payload health must be higher priority so we can diagnose potential payload problem.
+Separate from the Health Monitoring (Platform), this provides an easy way to separate payload by priority.  While reliability is prioritized, not all telemetry is equal. Payload TM is queued as priority 2 rather than priority 3 - payload data is droppable as a last resort, payload health must be higher priority so we can diagnose potential payload problems.
 
 ### Database CSCI
 ![Database CSCI](docs/database_csci.svg)
@@ -233,7 +234,7 @@ The platform is safety-critical and the payload isn't.
 | 1 | Events, anomaly reports, FDIR actions taken | Transmitted first. Never dropped. |
 | 2 | Platform and payload housekeeping TM | Transmitted second. Never dropped, but may be buffered or fragmented to send during subsequent orbits. |
 | 3 | Critical image regions (checksums) | Transmitted after class 2. Not droppable. |
-| 4 | Non-critical image regions (pixel data)| Transmitted after class 3. Droppable (when satellite in jeopardy), and it is the release valve that keeps the class 1, 2,3 guarantees honest. |
+| 4 | Non-critical image regions (pixel data)| Transmitted after class 3. Droppable (when satellite in jeopardy), and it is dropped to ensure higher priorities/classes may be transmitted. |
 | 5 | Non-critical image metadata (capture timestamp, positional data )| Transmitted after class 4, if link allows or is required. |
 
 In order to prioritize reliability and the reception of traffic, generated TM is queued for transmission and is not transmitted as soon as it is produced. Since we only see the ground station for a brief time during an orbit, the large majority of telemetry is generated without being able to be transmitted. Telemetry is stored rather than dropped (or transmitted immediately) because faults have a higher likelihood of happening when the satellite is not in view of a ground station. When this occurs, it's important to be able to in-orbit troubleshoot and determine causes, as such, telemetry retention ensures that the sequence of events is at least able to be traced to how it occurred and why the fault records and telemetries are transmitted in priority vs payload data.
@@ -272,7 +273,7 @@ What each state implies falls out of the definitions plus the criticality orderi
 | Standby | Rate-damping only. Must reacquire and settle to the next target orientation before leaving Standby, gated by the imager's warm-up time. |
 | Maintenance | Attitude control never stops, even though autonomous state transitions are restricted. |
 | Platform Only | AOCS keeps running independently of the payload domain being shut down. |
-| Recovery | Recovery control law - a dedicated law (e.g. detumble) takes over in place of nominal satellite orientation control. |
+| Recovery | Recovery control law (ex: detumbling) takes over in place of nominal satellite orientation control. |
 
 Classes 4 and 5 stop being produced as soon as the payload goes idle. Class 3 continues until the payload domain is fully down (Maintenance, Platform Only, or Recovery), which is where the downlink queue empties the quickest.
 
@@ -326,7 +327,7 @@ dispatcher on its PUS service. TM goes back out the same way.
 |---|---|---|
 | SpaceWire | Ground link to the communications subsystem | TTC / SpaceWire CSC |
 | CAN | AOCS actuator commands | AOCS / Motor Controller |
-| SPI | Sensor acquisition Magnetometers, temperature sensors, Star tracker, GPS receiver |Sensor Polling, via the front end |
+| SPI | Sensor acquisition Magnetometers, temperature sensors, Star tracker, GPS receiver |Sensor Polling, via the interface |
 | GPIO | Watchdog kick, sensor enable/disable | Health Monitoring / Watchdog |
 | QSPI | MRAM access, boot | Platform |
 | DDR (ECC) | Working memory both domains, and the Parameter Database current values | Database / Parameter Database. ECC error counters exposed to Health Monitoring |
