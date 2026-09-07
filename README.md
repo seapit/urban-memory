@@ -152,7 +152,7 @@ Responsible for monitoring the linux cores during boot. Failure to come alive is
 The state machine for the satellite see `[operational_states]`. Owns the platform state and must be commanded to transition. When transitioning from one state to another, this CSCI is responsible for enacting the sequence that must be performed. This is a centralised area to hold all the logic regarding states, their transitions and criteria.
 
 ##### Power and Payload Control
-Centralized location for power switching and shutting down the payload for recovery operations. Kept separate from States deliberately - States decide that a transition happens, this is an arm that performs some actions required for transitions. For clear separation of responsibilities, I would rather those be two things than one. The payload does not have the autority to overrrule anything.
+Centralized location for power switching and shutting down the payload for recovery operations. Kept separate from States deliberately - States decide that a transition happens, this is the arm that performs some actions required for transitions. For clear separation of responsibilities, I would rather those be two things than one. The payload does not have the autority to overrrule anything.
 
 ### Linux Domain
 The linux domain is deliberately set to be simple and lightweight (and out of scope). It contains the Payload Software CSCI (receiver for buffered payload operations, TM producer) and the Linux-side subset of the Database CSCI (Compression, Metadata).
@@ -351,7 +351,7 @@ Requires hard metrics and calculations. What I currently have is that the headro
 ## Fault tolerance
 A single SoC means no hardware redundancy, so fault tolerance is answered in software. In order to minimize having single points of failure an external watchdog should be added with the OBC kicking it. An internal watchdog can't be kicked by a hung core, since that core is exactly what it's meant to catch. Letting the payload handle the watchdog kick in this case would let the payload reset the platform which violates the constraints I've set forth at the beginning of the document.
 
-Recovery from a failed Linux boot is a bounded ladder rather than an indefinite retry. The Primary and Secondary images must both be tried before falling back to the Golden image; if the Golden image is also unsuccessful, the platform enters Platform Only.
+Recovery from a failed Linux boot uses a bounded multi-stage fallback strategy rather than indinite retries. The Primary and Secondary images must both be tried before falling back to the Golden image; if the Golden image is also unsuccessful, the platform enters Platform Only.
 
 ## Status
 
