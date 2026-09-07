@@ -16,7 +16,7 @@ this task? How would your approach be changed to fit an FPGA - based OBC?
 
 3. Ensure adherance to the architecture decisions instructed by the README (use sensor front end, add in all CSCIs). Also ensure that the Operational state machine is implemented in addition to linking that with the FDIR module.
 
-4. Make items configuration, allow for gains, threshholds for alarm tripping, task rates and buffer sized to be configurable based on concrete, real-world needs.
+4. Make items configurable, allow for gains, threshholds for alarm tripping, task rates and buffer sized to be configurable based on concrete, real-world needs.
 
 ---
 
@@ -24,7 +24,7 @@ this task? How would your approach be changed to fit an FPGA - based OBC?
 
 ### Process and standards
 - Discuss, and select a flight coding standard.
-- Determine Softeware Criticality classification. Safety critical aspects of platforms are often subject to different code coverage, test and implementation rules.
+- Determine Software Criticality classification. Safety critical aspects of platforms are often subject to different code coverage, test and implementation rules.
 - Ensure valid, testable requirements are created for the Platform's Software. Ensure that code, and tests are traced to each other, and both traced to requirements.
 - Documentation: ensure Software Requirement Specifications, Software High Level and Detailed Design, Interface Control Documents, Software Verification and Version Description documents are created and reviewed.
 - Formal review gates: PDR, CDR, TRR, software qualification review, FRR.
