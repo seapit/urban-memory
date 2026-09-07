@@ -157,7 +157,6 @@ Centralized location for power switching and shutting down the payload for recov
 ### Linux Domain
 The linux domain is deliberately set to be simple and lightweight (and out of scope). It contains the Payload Software CSCI (receiver for buffered payload operations, TM producer) and the Linux-side subset of the Database CSCI (Compression, Metadata).
 
-![Linux Domain](docs/linux_domain.svg)
 #### Payload Software CSCI
 ![Payload Software CSCI](docs/payload_csci.svg)
 
