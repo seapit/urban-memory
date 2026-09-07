@@ -1,9 +1,4 @@
 @startuml
-' TTC CSCI — the CSCI in full, with every relation that crosses its boundary.
-' Everything drawn in grey is context: it is shown only far enough to say what
-' this CSCI talks to. The whole picture is in obc-csci-full.puml.
-' GENERATED from obc-csci-full.puml — edit that file, then re-run split.py.
-
 skinparam componentStyle rectangle
 skinparam packageStyle rectangle
 skinparam shadowing false
@@ -24,13 +19,11 @@ skinparam database {
   BorderColor #333333
 }
 
-' ---------------------------------------------- the CSCI under view
 package "TTC CSCI" as TTC #EAF2FB {
   component "SpaceWire CSC" as SPW
   component "Encryption CSC" as ENC
 }
 
-' ---------------------------------------------- context only
 package "I/O interfaces" as IFACE {
   component "SpaceWire" as SPWIF #F0F0F0
 }
@@ -44,10 +37,8 @@ package "RF front end" as RF {
   component "Antenna" as ANT #F0F0F0
 }
 
-' ---------------------------------------------- inside the CSCI
 SPW <--> ENC : TC in (encrypted) /\nTM frames out
 
-' ---------------------------------------------- across its boundary
 SPWIF <--> SPW : SpaceWire link
 ENC --> CCSDS : TC in (decrypted)
 DLSCHED --> ENC : downlink stream,\ntransmitted by class

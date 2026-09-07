@@ -1,9 +1,4 @@
 @startuml
-' DataBase CSCI — the CSCI in full, with every relation that crosses its boundary.
-' Everything drawn in grey is context: it is shown only far enough to say what
-' this CSCI talks to. The whole picture is in obc-csci-full.puml.
-' GENERATED from obc-csci-full.puml — edit that file, then re-run split.py.
-
 skinparam componentStyle rectangle
 skinparam packageStyle rectangle
 skinparam shadowing false
@@ -24,7 +19,6 @@ skinparam database {
   BorderColor #333333
 }
 
-' ---------------------------------------------- the CSCI under view
 package "DataBase CSCI — RTOS half" as DBRT #EAF2FB {
   database "Data Buffer CSC" as DBUF
   database "Parameter Database CSC" as PDB
@@ -35,13 +29,12 @@ package "DataBase CSCI (Linux)" as DBLX #EAF2FB {
   component "MetaData CSC" as META
 }
 
-' ---------------------------------------------- context only
 package "Scheduling CSCI" as SCHED {
   component "CCSDS / PUS Dispatcher CSC" as CCSDS #F0F0F0
   component "Downlink Scheduler CSC" as DLSCHED #F0F0F0
 }
 package "FDIR CSCI" as FDIR {
-  component "States CSC" as STATES #F0F0F0
+  component "Operational State CSC" as STATES #F0F0F0
 }
 package "AOCS CSCI" as AOCS {
   component "Kalman Filter CSC" as FILTER #F0F0F0
@@ -52,48 +45,29 @@ package "Health Monitoring (Platform) CSCI" as HM {
 package "Sensor Service CSCI" as SENS {
   component "Sensor Polling CSC" as POLL #F0F0F0
 }
-package "Non-volatile & mass storage" as STORE {
-  database "Mass Memory" as MASS #F0F0F0
-  database "MRAM" as MRAM #F0F0F0
-}
-package "I/O interfaces" as IFACE {
-  component "DDR (ECC)" as DDRIF #F0F0F0
-  component "QSPI" as QSPI #F0F0F0
-}
 package "Linux domain" as LINDOM {
   component "Payload Software CSCI" as PAY #F0F0F0
   component "Health Monitoring (Payload) CSCI" as PHM #F0F0F0
 }
-package "Platform hardware" as PHW {
-  component "DDR + ECC" as DDR #F0F0F0
-}
-component "RTOS domain" as RTOSDOM #F0F0F0
 
-' ---------------------------------------------- inside the CSCI
-COMP --> META : checksums (3),\ncapture time and position (5)
+COMP --> META : checksums,\nPVT data at capture
 
-' ---------------------------------------------- across its boundary
-FILTER --> DBUF : TM — attitude solution
-HMON --> DBUF : TM — class 1 events,\nclass 2 housekeeping
+FILTER -[#blue]-> DBUF : TM (PVT data)
+HMON ..> DBUF : TM
 PHM ..> DBUF : payload TM
-DLSCHED --> DBUF : drain request\n(a scheduled command)
+DLSCHED ..> DBUF : Scheduled\ntransmission data
 DBUF --> DLSCHED : queued TM,\nhighest class first
-CCSDS --> CFG : TC — configuration updates
+CCSDS --> CFG : Updates to\nconfigurations
 CFG --> STATES : transition table,\nboot counters
-CFG --> FILTER : gains, limits,\npropagation bound
-CFG --> HMON : configurations
-PDB --> HMON : periodic sample ->\nhousekeeping packet
-FILTER --> PDB : attitude solution
-POLL --> PDB : sensor samples
-DBUF <--> MASS : backing store for\nthe downlink queue
-DBUF <--> MRAM : class 1 events survive\nthe reset they describe
-CFG <--> MRAM : configuration &\npersistent state
-PDB <--> DDRIF : the current-value table\nlives in DDR
-PAY --> COMP : raw frames (class 4)
-FILTER ..> META : attitude / geolocation at capture
-DBLX ..> DBUF : class 3, 4 and 5 payload data\ninto the downlink queue
-MRAM <--> QSPI : MRAM is reached over QSPI
-DDR <--> DDRIF : DDR bus
-QSPI --> RTOSDOM : boot images — primary ->\nsecondary -> golden, then Platform Only
+CFG -[#blue]-> FILTER : configurations
+CFG --> HMON : Monitor/Alarm\nconfigurations
+PDB ..> HMON : periodic sample ->\nhousekeeping packet
+FILTER -[#blue]-> PDB : Satellite Orientation
+POLL -[#green]-> DBUF : TM to\nping-pong buffer
+DBUF -[#blue]-> FILTER : TM from\n ping-pong buffer
+POLL -[#green]-> PDB : sensor samples
+PAY --> COMP : images
+FILTER .[#blue].> META : TM (PVT data)\nduring captures
+DBLX ..> DBUF : Payload TM and Data\n(classes 3/4/5)
 
 @enduml

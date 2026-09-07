@@ -19,16 +19,25 @@ skinparam database {
   BorderColor #333333
 }
 
-component "Health Monitoring (Payload) CSCI" as PHM #EAF2FB
+package "DataBase CSCI (Linux)" as DBLX #EAF2FB {
+  component "Compression CSC" as COMP
+  component "MetaData CSC" as META
+}
 
 package "Linux domain" as LINDOM {
   component "Payload Software CSCI" as PAY #F0F0F0
+}
+package "AOCS CSCI" as AOCS {
+  component "Kalman Filter CSC" as FILTER #F0F0F0
 }
 package "DataBase CSCI — RTOS half" as DBRT {
   database "Data Buffer CSC" as DBUF #F0F0F0
 }
 
-PAY --> PHM : payload health status
-PHM ..> DBUF : payload TM
+COMP --> META : checksums,\nPVT data at capture
+
+PAY --> COMP : images
+FILTER .[#blue].> META : TM (PVT data)\nduring captures
+DBLX ..> DBUF : Payload TM and Data\n(classes 3/4/5)
 
 @enduml

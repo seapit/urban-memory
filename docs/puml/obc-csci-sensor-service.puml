@@ -1,9 +1,4 @@
 @startuml
-' Sensor Service CSCI — the CSCI in full, with every relation that crosses its boundary.
-' Everything drawn in grey is context: it is shown only far enough to say what
-' this CSCI talks to. The whole picture is in obc-csci-full.puml.
-' GENERATED from obc-csci-full.puml — edit that file, then re-run split.py.
-
 skinparam componentStyle rectangle
 skinparam packageStyle rectangle
 skinparam shadowing false
@@ -24,29 +19,16 @@ skinparam database {
   BorderColor #333333
 }
 
-' ---------------------------------------------- the CSCI under view
 package "Sensor Service CSCI" as SENS #EAF2FB {
   component "Sensor Polling CSC" as POLL
 }
 
-' ---------------------------------------------- context only
 package "DataBase CSCI — RTOS half" as DBRT {
+  database "Data Buffer CSC" as DBUF #F0F0F0
   database "Parameter Database CSC" as PDB #F0F0F0
 }
-package "AOCS CSCI" as AOCS {
-  component "Kalman Filter CSC" as FILTER #F0F0F0
-}
-package "I/O interfaces" as IFACE {
-  component "SPI" as SPI #F0F0F0
-}
-package "Platform hardware" as PHW {
-  component "Sensors" as SNS #F0F0F0
-}
 
-' ---------------------------------------------- across its boundary
-POLL --> PDB : sensor samples
-POLL --> FILTER : sensor samples — the AOCS loop\npulls them on its own period
-SPI --> POLL : sensor samples,\nDMA into the shim
-SNS --> SPI : sensor bus
+POLL --> DBUF : critical TM
+POLL --> PDB : TM
 
 @enduml

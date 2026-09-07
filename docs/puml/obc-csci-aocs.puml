@@ -1,9 +1,4 @@
 @startuml
-' AOCS CSCI — the CSCI in full, with every relation that crosses its boundary.
-' Everything drawn in grey is context: it is shown only far enough to say what
-' this CSCI talks to. The whole picture is in obc-csci-full.puml.
-' GENERATED from obc-csci-full.puml — edit that file, then re-run split.py.
-
 skinparam componentStyle rectangle
 skinparam packageStyle rectangle
 skinparam shadowing false
@@ -24,14 +19,12 @@ skinparam database {
   BorderColor #333333
 }
 
-' ---------------------------------------------- the CSCI under view
 package "AOCS CSCI" as AOCS #EAF2FB {
   component "Kalman Filter CSC" as FILTER
   component "Satellite Orientation CSC" as SATORIENT
   component "Motor Controller CSC" as MOT
 }
 
-' ---------------------------------------------- context only
 package "DataBase CSCI — RTOS half" as DBRT {
   database "Data Buffer CSC" as DBUF #F0F0F0
   database "Configurations CSC" as CFG #F0F0F0
@@ -41,10 +34,7 @@ package "Health Monitoring (Platform) CSCI" as HM {
   component "Watchdog CSC" as WD #F0F0F0
 }
 package "FDIR CSCI" as FDIR {
-  component "States CSC" as STATES #F0F0F0
-}
-package "Sensor Service CSCI" as SENS {
-  component "Sensor Polling CSC" as POLL #F0F0F0
+  component "Operational State CSC" as STATES #F0F0F0
 }
 package "I/O interfaces" as IFACE {
   component "CAN" as CAN #F0F0F0
@@ -52,23 +42,17 @@ package "I/O interfaces" as IFACE {
 package "DataBase CSCI (Linux)" as DBLX {
   component "MetaData CSC" as META #F0F0F0
 }
-package "Platform hardware" as PHW {
-  component "Reaction Wheels / Magnetorquers" as ACT #F0F0F0
-}
 
-' ---------------------------------------------- inside the CSCI
-FILTER --> SATORIENT : filtered attitude estimate
-SATORIENT --> MOT : orientation demand
+FILTER --> SATORIENT : PVT propagation
+SATORIENT --> MOT : commanded\norientation
 
-' ---------------------------------------------- across its boundary
-CFG --> FILTER : gains, limits,\npropagation bound
-FILTER --> PDB : attitude solution
-FILTER --> WD : AOCS task check-in
-STATES --> SATORIENT : Recovery entry and the\ninitial orientation target
-POLL --> FILTER : sensor samples — the AOCS loop\npulls them on its own period
-MOT --> CAN : motor commands
-FILTER --> DBUF : TM — attitude solution
-FILTER ..> META : attitude / geolocation at capture
-CAN --> ACT : actuator commands
+CFG --> FILTER : configurations
+FILTER --> PDB : PVT/attitude\ndata
+FILTER --> WD : AOCS kick
+STATES --> SATORIENT : Orientation\nTarget
+DBUF --> FILTER : PVT data
+MOT --> CAN : commands
+FILTER --> DBUF : TM (PVT data)
+FILTER ..> META : TM (PVT data)\nduring captures
 
 @enduml

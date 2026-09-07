@@ -1,9 +1,4 @@
 @startuml
-' FDIR CSCI — the CSCI in full, with every relation that crosses its boundary.
-' Everything drawn in grey is context: it is shown only far enough to say what
-' this CSCI talks to. The whole picture is in obc-csci-full.puml.
-' GENERATED from obc-csci-full.puml — edit that file, then re-run split.py.
-
 skinparam componentStyle rectangle
 skinparam packageStyle rectangle
 skinparam shadowing false
@@ -24,14 +19,12 @@ skinparam database {
   BorderColor #333333
 }
 
-' ---------------------------------------------- the CSCI under view
 package "FDIR CSCI" as FDIR #EAF2FB {
   component "Boot CSC" as BOOT
-  component "States CSC" as STATES
+  component "Operational State CSC" as STATES
   component "Power & Payload Control CSC" as PPC
 }
 
-' ---------------------------------------------- context only
 package "DataBase CSCI — RTOS half" as DBRT {
   database "Configurations CSC" as CFG #F0F0F0
 }
@@ -51,23 +44,17 @@ package "AOCS CSCI" as AOCS {
 package "Linux domain" as LINDOM {
   component "Payload Software CSCI" as PAY #F0F0F0
 }
-package "Platform hardware" as PHW {
-  component "Power Distribution Unit" as PDUHW #F0F0F0
-}
-
-' ---------------------------------------------- inside the CSCI
 BOOT --> STATES : Linux bring-up result
 STATES --> PPC : transition actions
 
-' ---------------------------------------------- across its boundary
-CFG --> STATES : transition table,\nboot counters
-CCSDS --> STATES : TC — commanded transitions
-HMON --> STATES : alarm events,\nbounded queue
-STATES --> WD : FDIR task check-in
-PPC --> PDUIF : power switching authority
-STATES --> SATORIENT : Recovery entry and the\ninitial orientation target
-PPC ..> PAY : payload shutdown — no handshake,\nno payload veto
-BOOT ..> LINDOM : Linux-core bring-up is watched here;\nthe application-core reset is asserted\nfrom Recovery only
-PDUIF --> PDUHW : rail switching
+CFG --> STATES : configurations
+CCSDS --> STATES : TC\noperator commanded mode
+HMON --> STATES : events
+STATES --> WD : FDIR kick
+PPC --> PDUIF : power switching commands
+STATES --> SATORIENT : Orientation\nTargets
+PPC ..> PAY : payload shutdown
+STATES ..> PAY : platform state
+BOOT ..> LINDOM : Linux boot command
 
 @enduml

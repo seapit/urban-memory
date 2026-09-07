@@ -1,9 +1,4 @@
 @startuml
-' Scheduling CSCI — the CSCI in full, with every relation that crosses its boundary.
-' Everything drawn in grey is context: it is shown only far enough to say what
-' this CSCI talks to. The whole picture is in obc-csci-full.puml.
-' GENERATED from obc-csci-full.puml — edit that file, then re-run split.py.
-
 skinparam componentStyle rectangle
 skinparam packageStyle rectangle
 skinparam shadowing false
@@ -24,13 +19,11 @@ skinparam database {
   BorderColor #333333
 }
 
-' ---------------------------------------------- the CSCI under view
 package "Scheduling CSCI" as SCHED #EAF2FB {
   component "CCSDS / PUS Dispatcher CSC" as CCSDS
   component "Downlink Scheduler CSC" as DLSCHED
 }
 
-' ---------------------------------------------- context only
 package "TTC CSCI" as TTC {
   component "Encryption CSC" as ENC #F0F0F0
 }
@@ -38,11 +31,8 @@ package "DataBase CSCI — RTOS half" as DBRT {
   database "Data Buffer CSC" as DBUF #F0F0F0
   database "Configurations CSC" as CFG #F0F0F0
 }
-package "Non-volatile & mass storage" as STORE {
-  database "MRAM" as MRAM #F0F0F0
-}
 package "FDIR CSCI" as FDIR {
-  component "States CSC" as STATES #F0F0F0
+  component "Operational State CSC" as STATES #F0F0F0
 }
 package "Health Monitoring (Platform) CSCI" as HM {
   component "Health Monitor CSC" as HMON #F0F0F0
@@ -50,22 +40,13 @@ package "Health Monitoring (Platform) CSCI" as HM {
 package "Linux domain" as LINDOM {
   component "Payload Software CSCI" as PAY #F0F0F0
 }
-package "I/O interfaces" as IFACE {
-  component "QSPI" as QSPI #F0F0F0
-}
-component "RTOS domain" as RTOSDOM #F0F0F0
 
-' ---------------------------------------------- across its boundary
 ENC --> CCSDS : TC in (decrypted)
-DLSCHED --> ENC : downlink stream,\ntransmitted by class
-DLSCHED --> DBUF : drain request\n(a scheduled command)
-DBUF --> DLSCHED : queued TM,\nhighest class first
-CCSDS <--> MRAM : command schedule and\nmission plan are MRAM-resident
-CCSDS --> CFG : TC — configuration updates
-CCSDS --> STATES : TC — commanded transitions
-CCSDS --> HMON : TC — housekeeping, events
-CCSDS ..> PAY : TC — payload operations
-MRAM <--> QSPI : MRAM is reached over QSPI
-QSPI --> RTOSDOM : boot images — primary ->\nsecondary -> golden, then Platform Only
-
+DLSCHED --> ENC : downlink data
+DLSCHED --> DBUF : Scheduled Transmission\nCommand
+DBUF --> DLSCHED : Buffered\nTM/data
+CCSDS --> CFG : Updates to\nconfigurations
+CCSDS --> STATES : TC\noperator commanded mode
+CCSDS --> HMON : TC
+CCSDS ..> PAY : TC
 @enduml
