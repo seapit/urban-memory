@@ -5,8 +5,8 @@ Command-line measurements of the `OBCDemo` executable.
 - **Binary:** `build/x86-gcc/output-release/apps/OBCDemo/OBCDemo`
 - **Configured / built with:**
   ```sh
-  cmake --preset x86-gcc-release          # Release, no BUILD_TESTING
-  cmake --build --preset x86-gcc-release --target OBCDemo
+  make config-testrel 
+  make tgt OBCDemo
   ```
 
 ---

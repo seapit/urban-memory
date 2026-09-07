@@ -12,7 +12,7 @@ nothing else has to be installed.
 ### Build and run
 
 ```sh
-make config-testdeb
+make config-testdeb PRESET=x86-clang
 make tgt OBCDemo
 ```
 
@@ -22,9 +22,12 @@ The demo logs through syslog, which writes to **stderr** - redirect with
 ### Tests
 
 ```sh
-cmake --preset x86-clang -DBUILD_TESTING=ON
-cmake --build --preset x86-clang
-ctest --preset x86-clang
+make config-testdeb PRESET=x86-clang
+# apologies my make-fu isn't super great
+make test RateDamper 
+make test Databases
+make test FDIR
+make test HMS
 ```
 
 ## Problem Statement Brief
