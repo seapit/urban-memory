@@ -65,7 +65,7 @@ Clear diagrams and architectural explanations are encouraged.
 `[s2]` ECSS-E-ST-70-41, *Telemetry and telecommand packet utilization* (PUS)
 
 `[s3]` ASCA Project Data Management Plan, telemetry rates - high 32 768 bps, medium 4096 bps, low
-1024 bps. <https://heasarc.gsfc.nasa.gov/docs/asca/asca_pdmp/node15.html
+1024 bps. <https://heasarc.gsfc.nasa.gov/docs/asca/asca_pdmp/node15.html>
 
 `[s4]` CCSDS 355.0-B, Space Data Link Security (SDLS). AES-256 over the transfer frames.
 
@@ -95,6 +95,7 @@ Carries the TTC transfer frames to/from the communications subsystem.
 Suggested for completion's sake. People have demonstrated the ability to already hack satellites, AES-256 is a supported encryption via CCSDS SDLS.
 
 #### Database (full)
+![Database CSCI (full)](docs/database_csci.svg)
 This CSCI is split across domains, and is responsible for maintaining the integrity of the database. The full contents of the Database CSCI (rather than just RTOS domain) are indicated. Contains the following CSCs:
 
 ##### Data Buffer
@@ -148,11 +149,11 @@ Final authority (within spacecraft) on operations (may be superseded by operator
 ##### Boot
 Responsible for monitoring the linux cores during boot. Failure to come alive is a transition to Recovery, which owns the retry logic.
 
-##### States
+##### Operational State
 The state machine for the satellite see `[operational_states]`. Owns the platform state and must be commanded to transition. When transitioning from one state to another, this CSCI is responsible for enacting the sequence that must be performed. This is a centralised area to hold all the logic regarding states, their transitions and criteria.
 
 ##### Power and Payload Control
-Centralized location for power switching and shutting down the payload for recovery operations. Kept separate from States deliberately - States decide that a transition happens, this is the arm that performs some actions required for transitions. For clear separation of responsibilities, I would rather those be two things than one. The payload does not have the autority to overrrule anything.
+Centralized location for power switching and shutting down the payload for recovery operations. Kept separate from States deliberately - States decide that a transition happens, this is the arm that performs some actions required for transitions. For clear separation of responsibilities, I would rather those be two things than one. The payload does not have the authority to overrule anything.
 
 ### Linux Domain
 The linux domain is deliberately set to be simple and lightweight (and out of scope). It contains the Payload Software CSCI (receiver for buffered payload operations, TM producer) and the Linux-side subset of the Database CSCI (Compression, Metadata).
@@ -168,7 +169,7 @@ Produces Telemetry (TM), receives TCs from the dispatcher `[TTC]`. Compression a
 Separate from the Health Monitoring (Platform), this provides an easy way to separate payload by priority.  While reliability is prioritized, not all telemetry is equal. Payload TM is queued as priority 2 rather than priority 3 - payload data is droppable as a last resort, payload health must be higher priority so we can diagnose potential payload problems.
 
 #### Database CSCI
-![Database CSCI](docs/database_csci.svg)
+![Database CSCI (Linux domain)](docs/database_linux_csci.svg)
 This CSCI is split across domains, and is responsible for maintaining the integrity of the database. In this domain we have the following CSCs.
 
 ##### Compression
@@ -333,7 +334,7 @@ dispatcher on its PUS service. TM goes back out the same way.
 | DDR (ECC) | Working memory both domains, and the Parameter Database current values | Database / Parameter Database. ECC error counters exposed to Health Monitoring |
 | MRAM | Non-volatile store - configuration, persistence state, boot image | Platform |
 | Commandable Power Delivery Unit | FDIR power switching  | FDIR (Power and Payload Control) |
-| JTAG | Debug | - | Development only |
+| JTAG | Debug, development only | - |
 
 ### Memory
 | Store | Holds | Requirement explanation | Estimate |
@@ -351,7 +352,7 @@ Requires hard metrics and calculations. What I currently have is that the headro
 ## Fault tolerance
 A single SoC means no hardware redundancy, so fault tolerance is answered in software. In order to minimize having single points of failure an external watchdog should be added with the OBC kicking it. An internal watchdog can't be kicked by a hung core, since that core is exactly what it's meant to catch. Letting the payload handle the watchdog kick in this case would let the payload reset the platform which violates the constraints I've set forth at the beginning of the document.
 
-Recovery from a failed Linux boot uses a bounded multi-stage fallback strategy rather than indinite retries. The Primary and Secondary images must both be tried before falling back to the Golden image; if the Golden image is also unsuccessful, the platform enters Platform Only.
+Recovery from a failed Linux boot uses a bounded multi-stage fallback strategy rather than indefinite retries. The Primary and Secondary images must both be tried before falling back to the Golden image; if the Golden image is also unsuccessful, the platform enters Platform Only.
 
 ## Status
 
